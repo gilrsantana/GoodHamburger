@@ -11,7 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Accounts\Interfaces\" />
+    <Folder Include="Catalog\Interfaces\" />
+    <Folder Include="Ordering\Interfaces\" />
     <Folder Include="Sales\Entities\" />
+    <Folder Include="Sales\Interfaces\" />
   </ItemGroup>
 
 </Project>
