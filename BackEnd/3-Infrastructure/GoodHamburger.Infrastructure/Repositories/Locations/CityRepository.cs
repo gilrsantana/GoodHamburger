@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Repositories.Locations;
 using GoodHamburger.Shared.Entities.Locations;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Locations;
 
 public class CityRepository : BaseRepository<City>, ICityRepository
 {
-    public CityRepository(DbContext context) : base(context)
+    public CityRepository(ApplicationDbContext context) : base(context)
     {
     }
 

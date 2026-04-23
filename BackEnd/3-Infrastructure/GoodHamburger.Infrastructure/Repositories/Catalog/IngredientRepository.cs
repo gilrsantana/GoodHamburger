@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Catalog.Entities;
 using GoodHamburger.Domain.Repositories.Catalog;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Catalog;
 
 public class IngredientRepository : BaseRepository<Ingredient>, IIngredientRepository
 {
-    public IngredientRepository(DbContext context) : base(context)
+    public IngredientRepository(ApplicationDbContext context) : base(context)
     {
     }
 

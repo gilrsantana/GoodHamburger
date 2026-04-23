@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Ordering.Entities;
 using GoodHamburger.Domain.Ordering.Enums;
 using GoodHamburger.Domain.Repositories.Ordering;
@@ -7,7 +8,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Ordering;
 
 public class OrderRepository : BaseRepository<Order>, IOrderRepository
 {
-    public OrderRepository(DbContext context) : base(context)
+    public OrderRepository(ApplicationDbContext context) : base(context)
     {
     }
 

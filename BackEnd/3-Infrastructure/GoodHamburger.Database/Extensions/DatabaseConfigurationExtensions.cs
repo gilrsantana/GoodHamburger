@@ -23,7 +23,7 @@ public static class DatabaseConfigurationExtensions
         
         services.AddDbContext<ApplicationDbContext>(options => 
             ConfigurePostgre(options, dbConfig, connectionString));
-
+       
         return services;
     }
     

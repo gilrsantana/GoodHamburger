@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Ordering.Entities;
 using GoodHamburger.Domain.Repositories.Ordering;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Ordering;
 
 public class CouponRepository : BaseRepository<Coupon>, ICouponRepository
 {
-    public CouponRepository(DbContext context) : base(context)
+    public CouponRepository(ApplicationDbContext context) : base(context)
     {
     }
 

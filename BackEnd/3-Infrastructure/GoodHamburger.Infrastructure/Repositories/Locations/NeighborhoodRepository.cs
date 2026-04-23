@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Repositories.Locations;
 using GoodHamburger.Shared.Entities.Locations;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Locations;
 
 public class NeighborhoodRepository : BaseRepository<Neighborhood>, INeighborhoodRepository
 {
-    public NeighborhoodRepository(DbContext context) : base(context)
+    public NeighborhoodRepository(ApplicationDbContext context) : base(context)
     {
     }
 

@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Accounts.Entities;
 using GoodHamburger.Domain.Repositories.Accounts;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Accounts;
 
 public class CustomerProfileRepository : BaseRepository<CustomerProfile>, ICustomerProfileRepository
 {
-    public CustomerProfileRepository(DbContext context) : base(context)
+    public CustomerProfileRepository(ApplicationDbContext context) : base(context)
     {
     }
 

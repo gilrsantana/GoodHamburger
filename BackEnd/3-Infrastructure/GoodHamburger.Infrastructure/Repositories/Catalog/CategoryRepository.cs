@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Catalog.Entities;
 using GoodHamburger.Domain.Catalog.Enums;
 using GoodHamburger.Domain.Repositories.Catalog;
@@ -7,7 +8,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Catalog;
 
 public class CategoryRepository : BaseRepository<Category>, ICategoryRepository
 {
-    public CategoryRepository(DbContext context) : base(context)
+    public CategoryRepository(ApplicationDbContext context) : base(context)
     {
     }
 

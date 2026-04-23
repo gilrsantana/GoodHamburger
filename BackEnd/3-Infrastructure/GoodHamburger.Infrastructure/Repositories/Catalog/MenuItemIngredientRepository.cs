@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Catalog.Entities;
 using GoodHamburger.Domain.Repositories.Catalog;
 using Microsoft.EntityFrameworkCore;
@@ -6,15 +7,15 @@ namespace GoodHamburger.Infrastructure.Repositories.Catalog;
 
 public class MenuItemIngredientRepository : IMenuItemIngredientRepository
 {
-    private readonly DbContext _context;
+    private readonly ApplicationDbContext _context;
     private readonly DbSet<MenuItemIngredient> _dbSet;
 
-    public MenuItemIngredientRepository(DbContext context)
+    public MenuItemIngredientRepository(ApplicationDbContext context) 
     {
         _context = context;
         _dbSet = context.Set<MenuItemIngredient>();
     }
-
+    
     public async Task<IReadOnlyList<MenuItemIngredient>> GetByMenuItemIdAsync(Guid menuItemId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
@@ -52,12 +53,6 @@ public class MenuItemIngredientRepository : IMenuItemIngredientRepository
     public async Task UpdateAsync(MenuItemIngredient entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task DeleteAsync(MenuItemIngredient entity, CancellationToken cancellationToken = default)
-    {
-        _dbSet.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

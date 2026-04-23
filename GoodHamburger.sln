@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Api", "BackEn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Database", "BackEnd\3-Infrastructure\GoodHamburger.Database\GoodHamburger.Database.csproj", "{9FC6880F-C01C-4877-A5E8-AB690CA0BFE8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Observability", "BackEnd\3-Infrastructure\GoodHamburger.Observability\GoodHamburger.Observability.csproj", "{5BC6E410-08BA-4680-9A41-B47F6EA9B903}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +108,18 @@ Global
 		{9FC6880F-C01C-4877-A5E8-AB690CA0BFE8}.Release|x64.Build.0 = Release|Any CPU
 		{9FC6880F-C01C-4877-A5E8-AB690CA0BFE8}.Release|x86.ActiveCfg = Release|Any CPU
 		{9FC6880F-C01C-4877-A5E8-AB690CA0BFE8}.Release|x86.Build.0 = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|x64.Build.0 = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Debug|x86.Build.0 = Debug|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|x64.ActiveCfg = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|x64.Build.0 = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|x86.ActiveCfg = Release|Any CPU
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,5 +136,6 @@ Global
 		{FC44089B-23F6-27D0-B1BE-D772B2D5D269} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{DCF587EE-6D13-47D5-8F4C-784BF13CB751} = {FC44089B-23F6-27D0-B1BE-D772B2D5D269}
 		{9FC6880F-C01C-4877-A5E8-AB690CA0BFE8} = {9A5D0913-8971-99E9-7905-4136579DAD91}
+		{5BC6E410-08BA-4680-9A41-B47F6EA9B903} = {9A5D0913-8971-99E9-7905-4136579DAD91}
 	EndGlobalSection
 EndGlobal

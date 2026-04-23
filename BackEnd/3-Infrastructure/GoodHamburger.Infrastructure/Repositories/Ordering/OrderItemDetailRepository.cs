@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Ordering.Entities;
 using GoodHamburger.Domain.Repositories.Ordering;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Ordering;
 
 public class OrderItemDetailRepository : BaseRepository<OrderItemDetail>, IOrderItemDetailRepository
 {
-    public OrderItemDetailRepository(DbContext context) : base(context)
+    public OrderItemDetailRepository(ApplicationDbContext context) : base(context)
     {
     }
 

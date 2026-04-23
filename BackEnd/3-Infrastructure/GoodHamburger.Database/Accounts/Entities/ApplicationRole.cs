@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace GoodHamburger.Infrastructure.Accounts.Entities;
+namespace GoodHamburger.Database.Accounts.Entities;
 
 public sealed class ApplicationRole : IdentityRole<Guid>
 {

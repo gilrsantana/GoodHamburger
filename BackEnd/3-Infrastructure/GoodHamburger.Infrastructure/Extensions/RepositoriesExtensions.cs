@@ -1,7 +1,9 @@
+using GoodHamburger.Domain.Repositories;
 using GoodHamburger.Domain.Repositories.Accounts;
 using GoodHamburger.Domain.Repositories.Catalog;
 using GoodHamburger.Domain.Repositories.Locations;
 using GoodHamburger.Domain.Repositories.Ordering;
+using GoodHamburger.Infrastructure.Repositories;
 using GoodHamburger.Infrastructure.Repositories.Accounts;
 using GoodHamburger.Infrastructure.Repositories.Catalog;
 using GoodHamburger.Infrastructure.Repositories.Locations;
@@ -36,6 +38,10 @@ public static class RepositoriesExtensions
         // Account repositories
         services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
         services.AddScoped<IEmployeeProfileRepository, EmployeeProfileRepository>();
+        
+        // Base repositories
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
         
         return services;
     }

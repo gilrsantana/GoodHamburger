@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Catalog.Entities;
 using GoodHamburger.Domain.Repositories.Catalog;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Catalog;
 
 public class MenuItemRepository : BaseRepository<MenuItem>, IMenuItemRepository
 {
-    public MenuItemRepository(DbContext context) : base(context)
+    public MenuItemRepository(ApplicationDbContext context) : base(context)
     {
     }
 

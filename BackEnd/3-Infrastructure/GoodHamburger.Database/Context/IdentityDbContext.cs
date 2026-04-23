@@ -1,4 +1,4 @@
-using GoodHamburger.Infrastructure.Accounts.Entities;
+using GoodHamburger.Database.Accounts.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

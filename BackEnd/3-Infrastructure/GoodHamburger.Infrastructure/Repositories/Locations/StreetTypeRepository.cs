@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Repositories.Locations;
 using GoodHamburger.Shared.Entities.Locations;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace GoodHamburger.Infrastructure.Repositories.Locations;
 
 public class StreetTypeRepository : BaseRepository<StreetType>, IStreetTypeRepository
 {
-    public StreetTypeRepository(DbContext context) : base(context)
+    public StreetTypeRepository(ApplicationDbContext context) : base(context)
     {
     }
 

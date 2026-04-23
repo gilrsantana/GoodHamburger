@@ -1,3 +1,4 @@
+using GoodHamburger.Database.Context;
 using GoodHamburger.Domain.Repositories;
 using GoodHamburger.Domain.Repositories.Accounts;
 using GoodHamburger.Domain.Repositories.Catalog;
@@ -7,14 +8,13 @@ using GoodHamburger.Infrastructure.Repositories.Accounts;
 using GoodHamburger.Infrastructure.Repositories.Catalog;
 using GoodHamburger.Infrastructure.Repositories.Locations;
 using GoodHamburger.Infrastructure.Repositories.Ordering;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace GoodHamburger.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly DbContext _context;
+    private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
 
     // Account Repositories
@@ -40,7 +40,7 @@ public class UnitOfWork : IUnitOfWork
     private INeighborhoodRepository? _neighborhoods;
     private IStreetTypeRepository? _streetTypes;
 
-    public UnitOfWork(DbContext context)
+    public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
     }
