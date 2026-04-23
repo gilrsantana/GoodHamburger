@@ -1,5 +1,6 @@
 using GoodHamburger.Application.Extensions;
 using GoodHamburger.Database.Extensions;
+using GoodHamburger.Infrastructure.Extensions;
 using Microsoft.OpenApi;
 
 namespace GoodHamburger.Api.Configuration;
@@ -8,14 +9,15 @@ public static class AppConfiguration
 {
     public static void AddGlobalConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOpenApi();
-        services.AddDatabaseConfiguration(configuration);
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerConfiguration(configuration);
-        services.AddApplicationServicesConfiguration();
+        services.AddOpenApi()
+            .AddEndpointsApiExplorer()
+            .AddSwaggerConfiguration(configuration)
+            .AddDatabaseConfiguration(configuration)
+            .AddApplicationServicesConfiguration()
+            .AddRepositoriesConfiguration();
     }
     
-    private static void AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>
         {
@@ -26,6 +28,8 @@ public static class AppConfiguration
                 Description = "API para gestão de hamburgueria, estoque e pedidos."
             });
         });
+        
+        return services;
     }
 
     public static void LoadApplication(this WebApplication app)
