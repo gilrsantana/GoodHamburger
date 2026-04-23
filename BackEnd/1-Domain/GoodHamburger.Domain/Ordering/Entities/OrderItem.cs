@@ -59,6 +59,6 @@ public class OrderItem : Entity
 
     public override void Validate()
     {
-        throw new NotImplementedException();
+        
     }
 }

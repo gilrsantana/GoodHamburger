@@ -124,6 +124,6 @@ public class Order : Entity
 
     public override void Validate()
     {
-        throw new NotImplementedException();
+        
     }
 }
