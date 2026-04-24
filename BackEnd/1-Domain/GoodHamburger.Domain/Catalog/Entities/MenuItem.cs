@@ -86,7 +86,7 @@ public class MenuItem : Entity
 
     public MenuItem UpdateSku(string sku)
     {
-        Sku = sku.ToUpper();
+        Sku = sku.Trim().ToUpper();
         Validate();
         if (IsValid)
             UpdatedAt = DateTime.UtcNow;
