@@ -26,10 +26,24 @@ services:
     depends_on:
       - db
 
+  lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: goodhamburger_lgtm
+    restart: always
+    ports:
+      - "3000:3000"   # Grafana UI
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "9411:9411"   # Zipkin receiver
+    volumes:
+      - lgtm_data:/data
+    networks:
+      - goodhamburger-network
+
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../..
+      dockerfile: BackEnd/4-Presentation/GoodHamburger.Api/Dockerfile
     container_name: goodhamburger_api
     restart: always
     ports:
@@ -38,8 +52,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=GoodHamburgerDb;Username=admin;Password=password123
+      - SRE__OtlpEndpointUrl=http://lgtm:4317
+      - SRE__Nome=GoodHamburger.Api.Docker
+      - SRE__Habilitado=true
+      - SRE__UtilizaConsoleLog=true
     depends_on:
       - db
+      - lgtm
     networks:
       - goodhamburger-network
 
@@ -51,4 +70,6 @@ volumes:
   postgres_data:
     driver: local
   pgadmin_data:
+    driver: local
+  lgtm_data:
     driver: local

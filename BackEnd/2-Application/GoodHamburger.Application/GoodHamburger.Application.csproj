@@ -11,13 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>..\..\..\..\..\..\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\10.0.6\lib\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
+    <Folder Include="IdentityServices\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="IdentityServices\" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
   </ItemGroup>
 
 </Project>
