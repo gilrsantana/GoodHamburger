@@ -8,6 +8,8 @@ using GoodHamburger.Application.CatalogServices.Commands;
 using GoodHamburger.Application.CatalogServices.Queries;
 using GoodHamburger.Application.AccountServices.Commands;
 using GoodHamburger.Application.AccountServices.Queries;
+using GoodHamburger.Application.OrderingServices.Commands;
+using GoodHamburger.Application.OrderingServices.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GoodHamburger.Application.Extensions;
@@ -80,8 +82,7 @@ public static class ApplicationConfigurationExtensions
         services.AddScoped<IGetAvailableMenuItemsHandler, GetAvailableMenuItemsHandler>();
         services.AddScoped<ISearchMenuItemsHandler, SearchMenuItemsHandler>();
         services.AddScoped<IGetMenuItemsByPriceRangeHandler, GetMenuItemsByPriceRangeHandler>();
-
-        // Account - Customer Profiles
+        
         services.AddScoped<ICreateCustomerProfileHandler, CreateCustomerProfileHandler>();
         services.AddScoped<IUpdateCustomerProfileHandler, UpdateCustomerProfileHandler>();
         services.AddScoped<IUpdateCustomerDocumentHandler, UpdateCustomerDocumentHandler>();
@@ -93,8 +94,7 @@ public static class ApplicationConfigurationExtensions
         services.AddScoped<IGetCustomerProfileByDocumentHandler, GetCustomerProfileByDocumentHandler>();
         services.AddScoped<IGetAllCustomerProfilesHandler, GetAllCustomerProfilesHandler>();
         services.AddScoped<IGetActiveCustomerProfilesHandler, GetActiveCustomerProfilesHandler>();
-
-        // Account - Employee Profiles
+        
         services.AddScoped<ICreateEmployeeProfileHandler, CreateEmployeeProfileHandler>();
         services.AddScoped<IUpdateEmployeeProfileHandler, UpdateEmployeeProfileHandler>();
         services.AddScoped<IUpdateEmployeeCodeHandler, UpdateEmployeeCodeHandler>();
@@ -104,6 +104,24 @@ public static class ApplicationConfigurationExtensions
         services.AddScoped<IGetEmployeeProfileByIdentityIdHandler, GetEmployeeProfileByIdentityIdHandler>();
         services.AddScoped<IGetAllEmployeeProfilesHandler, GetAllEmployeeProfilesHandler>();
         services.AddScoped<IGetActiveEmployeeProfilesHandler, GetActiveEmployeeProfilesHandler>();
+
+        // Ordering Services
+        services.AddScoped<ICreateOrderHandler, CreateOrderHandler>();
+        services.AddScoped<IUpdateOrderStatusHandler, UpdateOrderStatusHandler>();
+        services.AddScoped<ICancelOrderHandler, CancelOrderHandler>();
+        services.AddScoped<IGetAllOrdersHandler, OrderQueryHandlers>();
+        services.AddScoped<IGetOrderByIdHandler, OrderQueryHandlers>();
+        services.AddScoped<IGetOrdersByCustomerHandler, OrderQueryHandlers>();
+        services.AddScoped<IGetOrdersByStatusHandler, OrderQueryHandlers>();
+
+        // Coupon Services
+        services.AddScoped<ICreateCouponHandler, CouponHandlers>();
+        services.AddScoped<IUpdateCouponHandler, CouponHandlers>();
+        services.AddScoped<ICancelCouponHandler, CouponHandlers>();
+        services.AddScoped<IGetAllCouponsHandler, CouponQueryHandlers>();
+        services.AddScoped<IGetCouponByIdHandler, CouponQueryHandlers>();
+        services.AddScoped<IGetCouponByCodeHandler, CouponQueryHandlers>();
+        services.AddScoped<IGetActiveCouponsHandler, CouponQueryHandlers>();
         
         return services;
     }
