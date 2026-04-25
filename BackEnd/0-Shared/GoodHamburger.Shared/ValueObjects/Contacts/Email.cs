@@ -5,7 +5,7 @@ namespace GoodHamburger.Shared.ValueObjects.Contacts;
 
 public class Email : ValueObject
 {
-    public string Address { get; private set; }
+    public string Address { get; private set; } = null!;
     
     private Email() { }
     

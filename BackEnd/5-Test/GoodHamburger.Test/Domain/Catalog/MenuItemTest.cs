@@ -205,7 +205,7 @@ public class MenuItemTest
     [InlineData("Original Burger", "Description", "slug", "SKU", 10.99, "")]
     [InlineData("Original Burger", "Description", "slug", "SKU", 10.99, null)]
     public void UpdateImage_Valid_MustReturnValid(string name, string description, string slug, 
-        string sku, decimal price, string newImageUrl)
+        string sku, decimal price, string? newImageUrl)
     {
         Guid categoryId = Guid.CreateVersion7();
         var menuItem = MenuItem.Create(name, description, slug, sku, price, categoryId);

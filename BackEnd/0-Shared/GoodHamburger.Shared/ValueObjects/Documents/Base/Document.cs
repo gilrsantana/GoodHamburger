@@ -7,7 +7,7 @@ namespace GoodHamburger.Shared.ValueObjects.Documents.Base;
 
 public class Document : ValueObject
 {
-    public string Number { get; private set; }
+    public string Number { get; private set; } = null!;
     public DocumentType DocumentType { get; private set; }
     
     protected Document() { }

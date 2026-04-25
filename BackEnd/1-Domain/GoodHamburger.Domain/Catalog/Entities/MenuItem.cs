@@ -102,7 +102,7 @@ public class MenuItem : Entity
         return this;
     }
 
-    public MenuItem UpdateImage(string imageUrl)
+    public MenuItem UpdateImage(string? imageUrl)
     {
         ImageUrl = imageUrl;
         Validate();

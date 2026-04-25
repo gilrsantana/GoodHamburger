@@ -7,7 +7,7 @@ public class Neighborhood : Entity
 {
     public string Name { get; private set; }  = null!;
     public Guid CityId { get; private set; }
-    public City City { get; private set; }
+    public City? City { get; private set; }
 
     protected Neighborhood() { }
     

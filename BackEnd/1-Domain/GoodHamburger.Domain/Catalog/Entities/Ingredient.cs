@@ -6,7 +6,7 @@ namespace GoodHamburger.Domain.Catalog.Entities;
 public class Ingredient : Entity
 {
     public string Name { get; private set; } = null!;
-    public string Sku { get; private set; }
+    public string Sku { get; private set; } = null!;
     public bool Active { get; private set; } = true;
     public decimal SalePrice { get; private set; }
     public decimal ReferenceCostPrice { get; private set; }

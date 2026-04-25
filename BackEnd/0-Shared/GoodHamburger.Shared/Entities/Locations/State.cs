@@ -9,7 +9,7 @@ public class State : Entity
     public string UF { get; private set; } = null!;
     public Guid CountryId { get; private set; }
     public Country? Country { get; private set; }
-    public IReadOnlyCollection<City> Cities { get; private set; }
+    public IReadOnlyCollection<City>? Cities { get; private set; }
 
     protected State() { }
     

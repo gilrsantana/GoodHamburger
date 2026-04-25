@@ -86,7 +86,7 @@ public class Category : Entity
         return this;
     }
     
-    public Category UpdateImage(string imageUrl)
+    public Category UpdateImage(string? imageUrl)
     {
         ImageUrl = imageUrl;
         Validate();

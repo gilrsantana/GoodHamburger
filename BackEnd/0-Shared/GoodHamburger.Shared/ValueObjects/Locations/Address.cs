@@ -7,15 +7,15 @@ namespace GoodHamburger.Shared.ValueObjects.Locations;
 
 public class Address : ValueObject
 {
-    public Guid StreetTypeId { get; private set; }
-    public string StreetName { get; private set; }
-    public string Number { get; private set; }
-    public string Complement { get; private set; }
-    public string ZipCode { get; private set; }
+    public Guid StreetTypeId { get; private set; } 
+    public string StreetName { get; private set; } = null!;
+    public string Number { get; private set; } = null!;
+    public string Complement { get; private set; } = null!;
+    public string ZipCode { get; private set; } = null!;
     public Guid NeighborhoodId { get; private set; }
 
-    public virtual StreetType StreetType { get; private set; }
-    public virtual Neighborhood Neighborhood { get; private set; }
+    public virtual StreetType? StreetType { get; private set; }
+    public virtual Neighborhood? Neighborhood { get; private set; }
 
     protected Address() { }
     

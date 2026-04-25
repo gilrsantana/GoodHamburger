@@ -4,8 +4,8 @@ namespace GoodHamburger.Domain.Accounts.Entities;
 
 public class EmployeeProfile: AccountProfile
 {
-    public string EmployeeCode { get; private set; }
-    public string RoleTitle { get; private set; }
+    public string EmployeeCode { get; private set; } = null!;
+    public string RoleTitle { get; private set; } = null!;
 
     protected EmployeeProfile() { }
     
