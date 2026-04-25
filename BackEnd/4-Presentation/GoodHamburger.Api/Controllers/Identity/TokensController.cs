@@ -1,5 +1,6 @@
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.IdentityServices.Commands;
+using GoodHamburger.Shared.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +26,8 @@ public class TokensController : ApiController
 
     [HttpPost("email-confirmation")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(GenerateEmailConfirmationTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GenerateEmailConfirmationToken([FromBody] GenerateEmailConfirmationTokenCommand command, CancellationToken cancellationToken)
     {
         var result = await _generateEmailConfirmationTokenHandler.HandleAsync(command, cancellationToken);
@@ -36,6 +39,8 @@ public class TokensController : ApiController
 
     [HttpPost("password-reset")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(GeneratePasswordResetTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GeneratePasswordResetToken([FromBody] GeneratePasswordResetTokenCommand command, CancellationToken cancellationToken)
     {
         var result = await _generatePasswordResetTokenHandler.HandleAsync(command, cancellationToken);
@@ -47,6 +52,9 @@ public class TokensController : ApiController
 
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command, CancellationToken cancellationToken)
     {
         var result = await _resetPasswordHandler.HandleAsync(command, cancellationToken);

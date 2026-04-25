@@ -1,6 +1,7 @@
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.IdentityServices.Commands;
 using GoodHamburger.Application.IdentityServices.Queries;
+using GoodHamburger.Shared.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,6 +33,8 @@ public class UsersController : ApiController
 
     [HttpPost]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(CreateUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
     {
         var result = await _createUserHandler.HandleAsync(command, cancellationToken);
@@ -42,6 +45,8 @@ public class UsersController : ApiController
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(string id, CancellationToken cancellationToken)
     {
         var query = new GetUserByIdQuery(id);
@@ -53,7 +58,9 @@ public class UsersController : ApiController
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = "Management")]
+    [ProducesResponseType(typeof(GetAllUsersResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllUsers(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -69,7 +76,10 @@ public class UsersController : ApiController
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = "Management")]
+    [ProducesResponseType(typeof(UpdateUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var updateCommand = command with { UserId = id };
@@ -81,7 +91,9 @@ public class UsersController : ApiController
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(DeleteUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(string id, CancellationToken cancellationToken)
     {
         var command = new DeleteUserCommand(id);

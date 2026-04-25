@@ -1,6 +1,7 @@
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.IdentityServices.Commands;
 using GoodHamburger.Application.IdentityServices.Queries;
+using GoodHamburger.Shared.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = "AdminOnly")]
 public class RolesController : ApiController
 {
     private readonly ICreateRoleHandler _createRoleHandler;
@@ -29,6 +30,8 @@ public class RolesController : ApiController
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(CreateRoleResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command, CancellationToken cancellationToken)
     {
         var result = await _createRoleHandler.HandleAsync(command, cancellationToken);
@@ -39,6 +42,7 @@ public class RolesController : ApiController
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(GetAllRolesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllRoles(CancellationToken cancellationToken)
     {
         var query = new GetAllRolesQuery();
@@ -50,6 +54,9 @@ public class RolesController : ApiController
     }
 
     [HttpPost("assign")]
+    [ProducesResponseType(typeof(AssignRoleToUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignRoleToUser([FromBody] AssignRoleToUserCommand command, CancellationToken cancellationToken)
     {
         var result = await _assignRoleToUserHandler.HandleAsync(command, cancellationToken);
@@ -60,6 +67,9 @@ public class RolesController : ApiController
     }
 
     [HttpPost("remove")]
+    [ProducesResponseType(typeof(RemoveRoleFromUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveRoleFromUser([FromBody] RemoveRoleFromUserCommand command, CancellationToken cancellationToken)
     {
         var result = await _removeRoleFromUserHandler.HandleAsync(command, cancellationToken);

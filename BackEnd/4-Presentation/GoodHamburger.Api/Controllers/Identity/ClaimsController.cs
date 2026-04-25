@@ -1,5 +1,6 @@
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.IdentityServices.Commands;
+using GoodHamburger.Shared.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = "AdminOnly")]
 public class ClaimsController : ApiController
 {
     private readonly IAddClaimToUserHandler _addClaimToUserHandler;
@@ -22,6 +23,9 @@ public class ClaimsController : ApiController
     }
 
     [HttpPost("add")]
+    [ProducesResponseType(typeof(AddClaimToUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AddClaimToUser([FromBody] AddClaimToUserCommand command, CancellationToken cancellationToken)
     {
         var result = await _addClaimToUserHandler.HandleAsync(command, cancellationToken);
@@ -32,6 +36,9 @@ public class ClaimsController : ApiController
     }
 
     [HttpPost("remove")]
+    [ProducesResponseType(typeof(RemoveClaimFromUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveClaimFromUser([FromBody] RemoveClaimFromUserCommand command, CancellationToken cancellationToken)
     {
         var result = await _removeClaimFromUserHandler.HandleAsync(command, cancellationToken);
