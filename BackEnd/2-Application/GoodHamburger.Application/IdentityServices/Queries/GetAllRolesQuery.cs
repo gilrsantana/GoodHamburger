@@ -9,5 +9,6 @@ public record GetAllRolesResponse(
 public record RoleResponse(
     Guid Id,
     string Name,
+    string? Description,
     IEnumerable<Guid> UserIds
 );

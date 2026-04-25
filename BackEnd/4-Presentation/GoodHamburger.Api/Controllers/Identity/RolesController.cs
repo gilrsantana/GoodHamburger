@@ -8,7 +8,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class RolesController : ApiController
 {
     private readonly ICreateRoleHandler _createRoleHandler;

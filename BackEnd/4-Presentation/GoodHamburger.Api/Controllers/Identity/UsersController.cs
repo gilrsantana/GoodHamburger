@@ -53,6 +53,7 @@ public class UsersController : ApiController
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetAllUsers(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -68,6 +69,7 @@ public class UsersController : ApiController
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var updateCommand = command with { UserId = id };
@@ -79,6 +81,7 @@ public class UsersController : ApiController
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(string id, CancellationToken cancellationToken)
     {
         var command = new DeleteUserCommand(id);

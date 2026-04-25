@@ -7,6 +7,7 @@ using GoodHamburger.Infrastructure.Extensions;
 using GoodHamburger.Observability.Extensions;
 using GoodHamburger.Database.Accounts.Entities;
 using GoodHamburger.Database.Context;
+using GoodHamburger.Database.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,25 @@ public static class AppConfiguration
         })
         .AddEntityFrameworkStores<IdentityDbContext>()
         .AddDefaultTokenProviders();
+
+        services.AddAuthorization(options =>
+        {
+            // Admin-only policy for system configuration
+            options.AddPolicy("AdminOnly", policy =>
+                policy.RequireRole("Admin"));
+
+            // Policy for user management (Admin and Manager)
+            options.AddPolicy("Management", policy =>
+                policy.RequireRole("Admin", "Manager"));
+
+            // Policy for operational tasks (Admin, Manager, Employee)
+            options.AddPolicy("Operate", policy =>
+                policy.RequireRole("Admin", "Manager", "Employee"));
+
+            // Policy for all authenticated users including basic Users
+            options.AddPolicy("Authenticated", policy =>
+                policy.RequireAuthenticatedUser());
+        });
         
         return services;
     }
@@ -196,5 +216,14 @@ public static class AppConfiguration
         });
         
         app.MapControllers();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleSeeder = scope.ServiceProvider.GetRequiredService<IRoleSeeder>();
+            roleSeeder.SeedRolesAsync().GetAwaiter().GetResult();
+
+            var userSeeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
+            userSeeder.SeedUsersAsync().GetAwaiter().GetResult();
+        }
     } 
 }

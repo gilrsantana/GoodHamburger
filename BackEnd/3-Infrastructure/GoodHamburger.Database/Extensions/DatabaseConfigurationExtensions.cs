@@ -1,5 +1,6 @@
 using GoodHamburger.Database.Configuration;
 using GoodHamburger.Database.Context;
+using GoodHamburger.Database.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,9 @@ public static class DatabaseConfigurationExtensions
         
         services.AddDbContext<ApplicationDbContext>(options => 
             ConfigurePostgre(options, dbConfig, connectionString));
+
+        services.AddScoped<IRoleSeeder, RoleSeeder>();
+        services.AddScoped<IUserSeeder, UserSeeder>();
        
         return services;
     }

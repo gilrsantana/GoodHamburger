@@ -25,7 +25,7 @@ public class CreateRoleHandler : ICreateRoleHandler
     {
         try
         {
-            var role = new ApplicationRole(command.RoleName);
+            var role = new ApplicationRole(command.RoleName, command.Description);
 
             var result = await _roleManager.CreateAsync(role);
 

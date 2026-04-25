@@ -41,6 +41,7 @@ public class GetAllRolesHandler : IGetAllRolesHandler
                 roleResponses.Add(new RoleResponse(
                     role.Id,
                     role.Name!,
+                    role.Description,
                     userIds
                 ));
             }

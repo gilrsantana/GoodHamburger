@@ -1,11 +1,13 @@
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.IdentityServices.Commands;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class ClaimsController : ApiController
 {
     private readonly IAddClaimToUserHandler _addClaimToUserHandler;
