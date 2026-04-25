@@ -1,4 +1,3 @@
-using GoodHamburger.Domain.Repositories;
 using GoodHamburger.Shared.Entities.Locations;
 
 namespace GoodHamburger.Domain.Repositories.Locations;

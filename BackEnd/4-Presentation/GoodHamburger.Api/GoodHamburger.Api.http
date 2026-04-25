@@ -1,5 +1,175 @@
-@GoodHamburger.Api_HostAddress = http://localhost:5275
+@Api_HostAddress = http://localhost:5275
+@JWT_Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjAxOWRjNDQ5LTE0MjYtN2I1Zi05ZDE4LTc1ODc2YTVmN2I2NSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnaWxyc2FudGFuYSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImdpbG1hci5yaWJlaXJvLnNhbnRhbmFAZ21haWwuY29tIiwic3ViIjoiMDE5ZGM0NDktMTQyNi03YjVmLTlkMTgtNzU4NzZhNWY3YjY1IiwiZW1haWwiOiJnaWxtYXIucmliZWlyby5zYW50YW5hQGdtYWlsLmNvbSIsImp0aSI6ImQ3NmZkNTU0LTJkMGQtNDBhMS1hOWMyLWIxZmU0MDFkODBmNSIsImlhdCI6MTc3NzExODY4NiwiZXhwIjoxNzc3MTE5NTg2LCJpc3MiOiJodHRwczovL21pbmhhX2FwbGljYWNhby5hcGkuYnIiLCJhdWQiOiJodHRwczovL21pbmhhX2FwbGljYWNhby5hcGkuYnIifQ.92gg7m3K_uhBYgQjFk3gHmAGV4Bt8nDrJ9ozoEn0gOI
 
+# Authentication Endpoints
+
+### Login
+POST {{Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "gilmar.ribeiro.santana@gmail.com",
+  "password": "Senha.123"
+}
+
+###
+
+### Refresh Token
+POST {{GoodHamburger.Api_HostAddress}}/api/auth/refresh-token
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "accessToken": "{{JWT_Token}}",
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+###
+
+### Logout
+POST {{GoodHamburger.Api_HostAddress}}/api/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+###
+
+# User Endpoints (Require Authentication)
+
+### Get All Users
+GET {{Api_HostAddress}}/api/Users?page=1&pageSize=10
+Accept: application/json
+Authorization: Bearer {{JWT_Token}}
+
+###
+
+### Get User by ID
+GET {{Api_HostAddress}}/api/Users/{{login.response.body.$.userId}}
+Accept: application/json
+Authorization: Bearer {{JWT_Token}}
+
+###
+
+### Create User
+POST {{GoodHamburger.Api_HostAddress}}/api/Users
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userName": "newuser",
+  "email": "newuser@example.com",
+  "password": "NewUser123!",
+  "phoneNumber": "+1234567890"
+}
+
+###
+
+### Update User
+PUT {{GoodHamburger.Api_HostAddress}}/api/Users/{{login.response.body.$.userId}}
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userName": "updateduser",
+  "email": "updated@example.com",
+  "phoneNumber": "+9876543210"
+}
+
+###
+
+### Delete User
+DELETE {{GoodHamburger.Api_HostAddress}}/api/Users/{{login.response.body.$.userId}}
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+###
+
+# Role Endpoints (Require Authentication)
+
+### Get All Roles
+GET {{GoodHamburger.Api_HostAddress}}/api/Roles
+Accept: application/json
+Authorization: Bearer {{JWT_Token}}
+
+###
+
+### Create Role
+POST {{GoodHamburger.Api_HostAddress}}/api/Roles
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "name": "Admin",
+  "description": "Administrator role"
+}
+
+###
+
+# Claims Endpoints (Require Authentication)
+
+### Add Claim to User
+POST {{GoodHamburger.Api_HostAddress}}/api/Claims/add-to-user
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userId": "{{login.response.body.$.userId}}",
+  "claimType": "permission",
+  "claimValue": "read_users"
+}
+
+###
+
+### Remove Claim from User
+POST {{GoodHamburger.Api_HostAddress}}/api/Claims/remove-from-user
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userId": "{{login.response.body.$.userId}}",
+  "claimType": "permission",
+  "claimValue": "read_users"
+}
+
+###
+
+# Token Endpoints (Require Authentication)
+
+### Generate Email Confirmation Token
+POST {{GoodHamburger.Api_HostAddress}}/api/Tokens/email-confirmation
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userId": "{{login.response.body.$.userId}}"
+}
+
+###
+
+### Generate Password Reset Token
+POST {{GoodHamburger.Api_HostAddress}}/api/Tokens/password-reset
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userId": "{{login.response.body.$.userId}}"
+}
+
+###
+
+### Reset Password
+POST {{GoodHamburger.Api_HostAddress}}/api/Tokens/reset-password
+Content-Type: application/json
+Authorization: Bearer {{JWT_Token}}
+
+{
+  "userId": "{{login.response.body.$.userId}}",
+  "token": "reset_token_here",
+  "newPassword": "NewPassword123!"
+}
+
+###
+
+# Weather Forecast (No Authentication Required)
 GET {{GoodHamburger.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 

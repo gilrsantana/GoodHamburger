@@ -27,6 +27,7 @@ public abstract class ApiController : ControllerBase
     {
         var c when c.EndsWith(".NotFound") => "Not Found",
         var c when c.EndsWith(".Validation") => "Bad Request",
+        var c when c.EndsWith("Failed") => "Bad Request",
         _ => "Server Error"
     };
 
@@ -34,6 +35,7 @@ public abstract class ApiController : ControllerBase
     {
         var c when c.EndsWith(".NotFound") => StatusCodes.Status404NotFound,
         var c when c.EndsWith(".Validation") => StatusCodes.Status400BadRequest,
+        var c when c.EndsWith("Failed") => StatusCodes.Status400BadRequest,
         var c when c.EndsWith(".Conflict") => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status500InternalServerError
     };

@@ -1,5 +1,4 @@
 using GoodHamburger.Domain.Accounts.Entities;
-using GoodHamburger.Domain.Repositories;
 
 namespace GoodHamburger.Domain.Repositories.Accounts;
 

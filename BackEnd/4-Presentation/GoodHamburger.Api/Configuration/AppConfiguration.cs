@@ -5,7 +5,10 @@ using GoodHamburger.Application.Extensions;
 using GoodHamburger.Database.Extensions;
 using GoodHamburger.Infrastructure.Extensions;
 using GoodHamburger.Observability.Extensions;
+using GoodHamburger.Database.Accounts.Entities;
+using GoodHamburger.Database.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -22,7 +25,8 @@ public static class AppConfiguration
             .AddControllers()
             .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-        services.AddSwaggerConfiguration(configuration)
+        services.AddIdentityServices()
+            .AddSwaggerConfiguration()
             .AddDatabaseConfiguration(configuration)
             .AddApplicationServicesConfiguration()
             .AddRepositoriesConfiguration()
@@ -33,7 +37,37 @@ public static class AppConfiguration
             .AddProblemDetails();
     }
     
-    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddIdentityServices(this IServiceCollection services)
+    {
+        services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+            
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+            
+            // User settings
+            options.User.RequireUniqueEmail = true;
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            
+            // Sign-in settings
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        })
+        .AddEntityFrameworkStores<IdentityDbContext>()
+        .AddDefaultTokenProviders();
+        
+        return services;
+    }
+    
+    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
     {
         services.AddSwaggerGen(options =>
         {
@@ -42,6 +76,19 @@ public static class AppConfiguration
                 Title = "GoodHamburger API",
                 Version = "v1",
                 Description = "API para gestão de hamburgueria, estoque e pedidos."
+            });
+
+            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "JWT Authorization header. Enter just the token (without 'Bearer' prefix).",
+            });
+            
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
             });
         });
         
@@ -56,6 +103,7 @@ public static class AppConfiguration
         var validateIssuerSigningKey = bool.Parse(configuration["JWT:ValidateIssuerSigningKey"] ?? "");
         var validateIssuer = bool.Parse(configuration["JWT:ValidateIssuer"] ?? "");
         var validateAudience = bool.Parse(configuration["JWT:ValidateAudience"] ?? "");
+        var validAudience = configuration["JWT:Audience"];
         var issuer = configuration["JWT:Issuer"] ?? "";
         
         services.AddAuthentication(options =>
@@ -65,14 +113,14 @@ public static class AppConfiguration
         })
         .AddJwtBearer(options =>
         {
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = validateIssuer,
                 ValidateAudience = validateAudience,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = validateIssuerSigningKey,
                 ValidIssuer = issuer,
-                ValidAudience = configuration["Jwt:Audience"],
+                ValidAudience = validAudience,
                 IssuerSigningKey = symmetricSecurityKey,
                 ClockSkew = TimeSpan.Zero
             };
@@ -99,6 +147,22 @@ public static class AppConfiguration
                         Title = "Forbidden",
                         Detail = "You do not have permission to perform this action."
                     });
+                },
+                OnAuthenticationFailed = async context =>
+                {
+                    Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                    context.Response.StatusCode = 401;
+                    await context.Response.WriteAsJsonAsync(new ProblemDetails
+                    {
+                        Status = 401,
+                        Title = "Authentication Failed",
+                        Detail = context.Exception.Message
+                    });
+                },
+                OnTokenValidated = async context =>
+                {
+                    Console.WriteLine("Token validated successfully");
+                    await Task.CompletedTask;
                 }
             };
         });
@@ -117,7 +181,7 @@ public static class AppConfiguration
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "GoodHamburger API V1");
-            c.RoutePrefix = "swagger";
+            c.RoutePrefix = "";
         });
         
         app.UseHttpsRedirection();

@@ -1,6 +1,5 @@
 using GoodHamburger.Domain.Ordering.Entities;
 using GoodHamburger.Domain.Ordering.Enums;
-using GoodHamburger.Domain.Repositories;
 
 namespace GoodHamburger.Domain.Repositories.Ordering;
 

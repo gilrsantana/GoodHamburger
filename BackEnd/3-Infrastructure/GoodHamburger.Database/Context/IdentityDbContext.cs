@@ -16,6 +16,8 @@ public class IdentityDbContext : IdentityDbContext<
 {
     public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options) { }
     
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

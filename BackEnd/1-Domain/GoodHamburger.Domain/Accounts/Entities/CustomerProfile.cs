@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using Flunt.Br;
 using Flunt.Validations;
 using GoodHamburger.Shared.ValueObjects.Documents.Base;
 using GoodHamburger.Shared.ValueObjects.Documents.Enums;

@@ -1,5 +1,4 @@
 using Flunt.Br;
-using Flunt.Validations;
 using GoodHamburger.Shared.Entities.Locations;
 using GoodHamburger.Shared.ValueObjects.Base;
 

@@ -1,6 +1,5 @@
 using GoodHamburger.Domain.Catalog.Entities;
 using GoodHamburger.Domain.Catalog.Enums;
-using GoodHamburger.Domain.Repositories;
 
 namespace GoodHamburger.Domain.Repositories.Catalog;
 

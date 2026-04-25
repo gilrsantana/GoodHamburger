@@ -1,7 +1,5 @@
 using GoodHamburger.Database.Context;
-using GoodHamburger.Domain.Repositories;
 using GoodHamburger.Shared.Entities.Base;
-using Microsoft.EntityFrameworkCore;
 
 namespace GoodHamburger.Infrastructure.Repositories;
 

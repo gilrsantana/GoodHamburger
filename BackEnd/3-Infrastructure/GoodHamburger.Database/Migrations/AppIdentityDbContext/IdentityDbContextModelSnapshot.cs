@@ -22,7 +22,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationRole", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,7 +52,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_roles", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationRoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_role_claims", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -141,7 +141,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_users", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserClaim", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,7 +165,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_user_claims", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserLogin", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text");
@@ -186,7 +186,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_user_logins", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserRole", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserRole", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -201,7 +201,7 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_user_roles", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserToken", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserToken", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -220,55 +220,98 @@ namespace GoodHamburger.Database.Migrations.AppIdentityDbContext
                     b.ToTable("identity_user_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationRole", null)
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("JwtTokenId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationRoleClaim", b =>
+                {
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserClaim", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserClaim", b =>
                 {
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUser", null)
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserLogin", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserLogin", b =>
                 {
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUser", null)
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserRole", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserRole", b =>
                 {
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationRole", null)
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUser", null)
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUserToken", b =>
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.ApplicationUserToken", b =>
                 {
-                    b.HasOne("GoodHamburger.Infrastructure.Accounts.Entities.ApplicationUser", null)
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GoodHamburger.Database.Accounts.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("GoodHamburger.Database.Accounts.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
