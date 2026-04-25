@@ -1,10 +1,12 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using GoodHamburger.Api.Middlewares;
 using GoodHamburger.Application.Extensions;
 using GoodHamburger.Database.Extensions;
 using GoodHamburger.Infrastructure.Extensions;
 using GoodHamburger.Observability.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -26,6 +28,9 @@ public static class AppConfiguration
             .AddRepositoriesConfiguration()
             .AddAuthenticationConfiguration(configuration)
             .AddSre(configuration, builder);
+        
+        services.AddExceptionHandler<GlobalExceptionHandler>()
+            .AddProblemDetails();
     }
     
     private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration)
@@ -70,6 +75,31 @@ public static class AppConfiguration
                 ValidAudience = configuration["Jwt:Audience"],
                 IssuerSigningKey = symmetricSecurityKey,
                 ClockSkew = TimeSpan.Zero
+            };
+            
+            options.Events = new JwtBearerEvents
+            {
+                OnChallenge = async context =>
+                {
+                    context.HandleResponse();
+                    context.Response.StatusCode = 401;
+                    await context.Response.WriteAsJsonAsync(new ProblemDetails
+                    {
+                        Status = 401,
+                        Title = "Unauthorized",
+                        Detail = "You must be authenticated to access this resource."
+                    });
+                },
+                OnForbidden = async context =>
+                {
+                    context.Response.StatusCode = 403;
+                    await context.Response.WriteAsJsonAsync(new ProblemDetails
+                    {
+                        Status = 403,
+                        Title = "Forbidden",
+                        Detail = "You do not have permission to perform this action."
+                    });
+                }
             };
         });
         
