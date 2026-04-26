@@ -9,7 +9,7 @@ namespace GoodHamburger.Api.Controllers.Catalog;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MenuItemsController : ApiController
+public class MenuItemsController : BaseApiController
 {
     private readonly ICreateMenuItemHandler _createMenuItemHandler;
     private readonly IUpdateMenuItemHandler _updateMenuItemHandler;

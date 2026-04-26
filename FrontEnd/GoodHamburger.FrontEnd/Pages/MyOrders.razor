@@ -1,0 +1,111 @@
+@page "/my-orders"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Meus Pedidos - Good Hamburger</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Meus Pedidos</MudText>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center align-center" style="height: 400px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!_orders.Any())
+{
+    <MudAlert Severity="Severity.Info">Você ainda não realizou nenhum pedido.</MudAlert>
+    <MudButton Href="/menu" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Ir ao Cardápio</MudButton>
+}
+else
+{
+    <MudTable Items="@_orders" Hover="true" Elevation="4" Breakpoint="Breakpoint.Sm" T="OrderDto">
+        <HeaderContent>
+            <MudTh>Data</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Itens</MudTh>
+            <MudTh>Total</MudTh>
+            <MudTh>Ações</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Data">@context.OrderDate.ToString("dd/MM/yyyy HH:mm")</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status.ToString()</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Itens">@string.Join(", ", context.Items.Select(i => i.ProductName))</MudTd>
+            <MudTd DataLabel="Total">@context.FinalAmount.ToString("C")</MudTd>
+            <MudTd DataLabel="Ações">
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ViewDetails(context.Id))">Detalhes</MudButton>
+                @if (context.Status == OrderStatus.Pending)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => CancelOrder(context.Id))" Class="ml-2">Cancelar</MudButton>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private bool _loading = true;
+    private List<OrderDto> _orders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        _loading = true;
+        try
+        {
+            var response = await ApiClient.GetOrdersByCustomerAsync(Guid.Empty, 1, 50);
+            _orders = response.Items?.OrderByDescending(o => o.OrderDate).ToList() ?? new();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar seus pedidos.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Color GetStatusColor(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => Color.Info,
+        OrderStatus.Confirmed => Color.Primary,
+        OrderStatus.InPreparation => Color.Warning,
+        OrderStatus.Ready => Color.Success,
+        OrderStatus.Completed => Color.Dark,
+        OrderStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+
+    private void ViewDetails(Guid id)
+    {
+        Navigation.NavigateTo($"/orders/{id}");
+    }
+
+    private async Task CancelOrder(Guid id)
+    {
+        try
+        {
+            var response = await ApiClient.CancelOrderAsync(id, "Cancelado pelo usuário");
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Pedido cancelado.", Severity.Info);
+                await LoadOrders();
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao cancelar pedido.", Severity.Error);
+        }
+    }
+}

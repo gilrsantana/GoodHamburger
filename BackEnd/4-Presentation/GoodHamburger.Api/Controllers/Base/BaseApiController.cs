@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GoodHamburger.Api.Controllers.Base;
 
 [Authorize]
-public abstract class ApiController : ControllerBase
+public abstract class BaseApiController : ControllerBase
 {
     protected IActionResult HandleFailure(BaseResult result)
     {

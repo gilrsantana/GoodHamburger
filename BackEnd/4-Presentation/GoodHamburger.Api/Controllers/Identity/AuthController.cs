@@ -10,7 +10,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ApiController
+public class AuthController : BaseApiController
 {
     private readonly ILoginHandler _loginHandler;
     private readonly IRefreshTokenHandler _refreshTokenHandler;

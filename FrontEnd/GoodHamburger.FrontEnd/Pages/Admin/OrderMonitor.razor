@@ -1,0 +1,140 @@
+@page "/admin/orders"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,Manager,Employee")]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+
+<PageTitle>Monitor de Pedidos - Good Hamburger</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Monitor de Cozinha (KDS)</MudText>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center align-center" style="height: 400px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else
+{
+    <MudGrid>
+        @foreach (var status in _monitoredStatuses)
+        {
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-4">@GetStatusTitle(status)</MudText>
+                <MudDivider Class="mb-4" />
+                
+                @if (!_orders.Any(o => o.Status == status))
+                {
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Outlined" Dense="true">Nenhum pedido</MudAlert>
+                }
+                else
+                {
+                    @foreach (var order in _orders.Where(o => o.Status == status))
+                    {
+                        <MudCard Elevation="2" Class="mb-4">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.subtitle1">Pedido #@order.Id.ToString().Substring(0, 8)</MudText>
+                                    <MudText Typo="Typo.caption">@order.OrderDate.ToString("HH:mm")</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                @foreach (var item in order.Items)
+                                {
+                                    <MudText Typo="Typo.body2">• @item.Quantity x @item.ProductName</MudText>
+                                }
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="@GetActionButtonColor(status)" 
+                                           Size="Size.Small" 
+                                           FullWidth="true"
+                                           OnClick="@(() => AdvanceStatus(order))">
+                                    @GetActionButtonText(status)
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    }
+                }
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<OrderDto> _orders = new();
+    private readonly OrderStatus[] _monitoredStatuses = { OrderStatus.Pending, OrderStatus.InPreparation, OrderStatus.Ready };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        _loading = true;
+        try
+        {
+            var response = await ApiClient.GetAllOrdersAsync(1, 100);
+            _orders = response.Items.ToList();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar monitor de pedidos.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task AdvanceStatus(OrderDto order)
+    {
+        var nextStatus = order.Status switch
+        {
+            OrderStatus.Pending => OrderStatus.InPreparation,
+            OrderStatus.InPreparation => OrderStatus.Ready,
+            OrderStatus.Ready => OrderStatus.InDelivery,
+            _ => order.Status
+        };
+
+        try
+        {
+            var response = await ApiClient.UpdateOrderStatusAsync(order.Id, new UpdateOrderStatusCommand(order.Id, nextStatus, null));
+            if (response.Succeeded)
+            {
+                Snackbar.Add($"Pedido #{order.Id.ToString().Substring(0, 8)} atualizado para {nextStatus}.", Severity.Info);
+                await LoadOrders();
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao atualizar status.", Severity.Error);
+        }
+    }
+
+    private string GetStatusTitle(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "Novos",
+        OrderStatus.InPreparation => "Em Preparo",
+        OrderStatus.Ready => "Prontos",
+        _ => status.ToString()
+    };
+
+    private string GetActionButtonText(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "Iniciar Preparo",
+        OrderStatus.InPreparation => "Finalizar Preparo",
+        OrderStatus.Ready => "Sair para Entrega",
+        _ => "Avançar"
+    };
+
+    private Color GetActionButtonColor(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => Color.Primary,
+        OrderStatus.InPreparation => Color.Warning,
+        OrderStatus.Ready => Color.Success,
+        _ => Color.Default
+    };
+}

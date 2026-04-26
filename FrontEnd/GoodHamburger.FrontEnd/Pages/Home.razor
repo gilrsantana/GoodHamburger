@@ -1,0 +1,25 @@
+@page "/"
+@inject NavigationManager Navigation
+
+<PageTitle>Good Hamburger - Bem-vindo</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Bem-vindo ao Good Hamburger!</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">O melhor sistema para gerenciar seu lanche.</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Ver Cardápio</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">Explore nossos hambúrgueres, batatas e refrigerantes.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo("menu"))">Ver Agora</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>

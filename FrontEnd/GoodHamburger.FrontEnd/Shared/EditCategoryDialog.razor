@@ -1,0 +1,85 @@
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Editar Categoria</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_success">
+            <MudTextField T="string" Label="Nome" Required="true" @bind-Value="_command.Name" Variant="Variant.Outlined" Class="mb-4" />
+            
+            <MudTextField T="string" Label="Descrição" @bind-Value="_command.Description" Variant="Variant.Outlined" Class="mb-4" />
+            
+            <MudTextField T="string" Label="Slug" @bind-Value="_command.Slug" Variant="Variant.Outlined" Class="mb-4" />
+            
+            <MudTextField T="int?" Label="Ordem de Exibição" @bind-Value="_command.DisplayOrder" Variant="Variant.Outlined" Class="mb-4" />
+            
+            <MudTextField T="string" Label="URL da Imagem" @bind-Value="_command.ImageUrl" Variant="Variant.Outlined" Class="mb-4" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success || _processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Class="ms-n1" Indeterminate="true" />
+                <MudText Class="ms-2">Salvando...</MudText>
+            }
+            else
+            {
+                <MudText>Salvar</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public CategoryDto Category { get; set; } = null!;
+    private MudForm _form = null!;
+    private bool _success;
+    private bool _processing;
+    private UpdateCategoryCommand _command = new();
+
+    protected override void OnInitialized()
+    {
+        if (Category != null)
+        {
+            _command.CategoryId = Category.Id;
+            _command.Name = Category.Name;
+            _command.Description = Category.Description ?? string.Empty;
+            _command.Slug = Category.Slug ?? string.Empty;
+            _command.DisplayOrder = Category.DisplayOrder;
+            _command.ImageUrl = Category.ImageUrl;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        _processing = true;
+        try
+        {
+            var response = await ApiClient.UpdateCategoryAsync(Category.Id, _command);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Categoria atualizada com sucesso!", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao atualizar categoria." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao atualizar categoria.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

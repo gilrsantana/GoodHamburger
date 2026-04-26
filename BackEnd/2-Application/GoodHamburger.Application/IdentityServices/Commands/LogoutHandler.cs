@@ -37,7 +37,7 @@ public class LogoutHandler : ILogoutHandler
 
             // Find all active refresh tokens for the user
             var refreshTokens = await _dbContext.RefreshTokens
-                .Where(rt => rt.UserId == userId && !rt.IsRevoked && !rt.IsExpired)
+                .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.Expires >= DateTime.UtcNow)
                 .ToListAsync(cancellationToken);
 
             if (refreshTokens.Any())

@@ -5,6 +5,7 @@ using GoodHamburger.Application.Extensions;
 using GoodHamburger.Database.Extensions;
 using GoodHamburger.Infrastructure.Extensions;
 using GoodHamburger.Observability.Extensions;
+using GoodHamburger.ExternalProviders.DependencyInjection;
 using GoodHamburger.Database.Accounts.Entities;
 using GoodHamburger.Database.Context;
 using GoodHamburger.Database.Data;
@@ -22,7 +23,17 @@ public static class AppConfiguration
     {
         services.AddOpenApi()
             .AddEndpointsApiExplorer()
-            .AddCors()
+            .AddCors(options =>
+            {
+                options.AddPolicy("AllowBlazor",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:5100")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            })
             .AddControllers()
             .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -31,6 +42,7 @@ public static class AppConfiguration
             .AddDatabaseConfiguration(configuration)
             .AddApplicationServicesConfiguration()
             .AddRepositoriesConfiguration()
+            .AddExternalProviders()
             .AddAuthenticationConfiguration(configuration)
             .AddSre(configuration, builder);
         
@@ -205,18 +217,13 @@ public static class AppConfiguration
         });
         
         app.UseHttpsRedirection();
+        app.UseCors("AllowBlazor");
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseCors(options =>
-        {
-            options.AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-        
         app.MapControllers();
-
+        
+        
         using (var scope = app.Services.CreateScope())
         {
             var roleSeeder = scope.ServiceProvider.GetRequiredService<IRoleSeeder>();

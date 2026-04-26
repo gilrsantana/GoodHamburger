@@ -10,7 +10,7 @@ namespace GoodHamburger.Api.Controllers.Ordering;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController : ApiController
+public class OrdersController : BaseApiController
 {
     private readonly ICreateOrderHandler _createOrderHandler;
     private readonly IUpdateOrderStatusHandler _updateOrderStatusHandler;

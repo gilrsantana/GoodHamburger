@@ -1,0 +1,114 @@
+@page "/admin/coupons"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,Manager")]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Gerenciar Cupons - Good Hamburger</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-6">
+    <MudText Typo="Typo.h4">Gerenciar Cupons</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateCouponDialog">Novo Cupom</MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center align-center" style="height: 400px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!_coupons.Any())
+{
+    <MudAlert Severity="Severity.Info">Nenhum cupom encontrado.</MudAlert>
+}
+else
+{
+    <MudTable Items="@_coupons" Hover="true" Elevation="4" Breakpoint="Breakpoint.Sm" T="CouponDto">
+        <HeaderContent>
+            <MudTh>Código</MudTh>
+            <MudTh>Valor</MudTh>
+            <MudTh>Tipo</MudTh>
+            <MudTh>Expiração</MudTh>
+            <MudTh>Usos</MudTh>
+            <MudTh>Ativo</MudTh>
+            <MudTh>Ações</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Código">@context.Code</MudTd>
+            <MudTd DataLabel="Valor">@(context.IsPercentage ? context.Value.ToString("P0") : context.Value.ToString("C"))</MudTd>
+            <MudTd DataLabel="Tipo">@(context.IsPercentage ? "Percentual" : "Fixo")</MudTd>
+            <MudTd DataLabel="Expiração">@context.ExpirationDate.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd DataLabel="Usos">@(context.UsageLimit.HasValue ? $"{context.UsageCount}/{context.UsageLimit}" : $"{context.UsageCount}/Ilimitado")</MudTd>
+            <MudTd DataLabel="Ativo">
+                <MudCheckBox T="bool" Value="@context.Active" ReadOnly="true" Color="Color.Primary" />
+            </MudTd>
+            <MudTd DataLabel="Ações">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditCouponDialog(context))" />
+                @if (context.Active)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Warning" Size="Size.Small" OnClick="@(() => CancelCoupon(context.Id))" />
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private bool _loading = true;
+    private List<CouponDto> _coupons = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCoupons();
+    }
+
+    private async Task LoadCoupons()
+    {
+        _loading = true;
+        try
+        {
+            var response = await ApiClient.GetAllCouponsAsync(1, 100);
+            _coupons = response.Items.ToList();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar cupons.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OpenCreateCouponDialog()
+    {
+        Snackbar.Add("Funcionalidade de criar cupom em desenvolvimento.", Severity.Info);
+    }
+
+    private void OpenEditCouponDialog(CouponDto coupon)
+    {
+        Snackbar.Add($"Funcionalidade de editar cupom {coupon.Code} em desenvolvimento.", Severity.Info);
+    }
+
+    private async Task CancelCoupon(Guid id)
+    {
+        try
+        {
+            var response = await ApiClient.CancelCouponAsync(id);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Cupom cancelado.", Severity.Info);
+                await LoadCoupons();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao cancelar cupom." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao cancelar cupom.", Severity.Error);
+        }
+    }
+}

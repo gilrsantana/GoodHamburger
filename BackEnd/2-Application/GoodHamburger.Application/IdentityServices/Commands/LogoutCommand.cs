@@ -1,5 +1,3 @@
-using GoodHamburger.Shared.Handlers;
-
 namespace GoodHamburger.Application.IdentityServices.Commands;
 
 public record LogoutCommand(

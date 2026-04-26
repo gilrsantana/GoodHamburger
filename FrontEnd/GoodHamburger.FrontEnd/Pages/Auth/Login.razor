@@ -1,0 +1,85 @@
+@page "/login"
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Login - Good Hamburger</PageTitle>
+
+<div class="d-flex justify-center align-center mt-10">
+    <MudPaper Elevation="4" Class="pa-8" Style="width: 400px;">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">Entrar</MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6">Acesse sua conta para fazer pedidos</MudText>
+
+        <MudForm @ref="_form" @bind-IsValid="@_success">
+            <MudTextField T="string" Label="E-mail" Required="true" 
+                          @bind-Value="_command.Email" 
+                          InputType="InputType.Email"
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Senha" Required="true" 
+                          @bind-Value="_command.Password" 
+                          InputType="InputType.Password" 
+                          Variant="Variant.Outlined" Class="mb-6" />
+
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true" 
+                       Size="Size.Large"
+                       Disabled="@(!_success || _loading)"
+                       OnClick="HandleLogin">
+                @if (_loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Autenticando...</MudText>
+                }
+                else
+                {
+                    <MudText>Login</MudText>
+                }
+            </MudButton>
+        </MudForm>
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            Não tem uma conta? <MudLink Href="/register">Cadastre-se</MudLink>
+        </MudText>
+    </MudPaper>
+</div>
+
+@code {
+    private MudForm _form = null!;
+    private bool _success;
+    private bool _loading;
+    private LoginCommand _command = new LoginCommand("", "");
+
+    private async Task HandleLogin()
+    {
+        _loading = true;
+        try
+        {
+            var response = await AuthService.Login(_command);
+
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Bem-vindo!", Severity.Success);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                foreach (var error in response.Errors ?? new[] { "Falha no login. Verifique suas credenciais." })
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Ocorreu um erro ao tentar fazer login.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

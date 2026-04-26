@@ -1,0 +1,72 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <div style="cursor: pointer" class="d-flex align-center ml-3" @onclick="@(() => Navigation.NavigateTo("/"))">
+            <MudText Typo="Typo.h5">Good Hamburger</MudText>
+        </div>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("menu"))" />
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <MudMenuItem OnClick="@(() => Navigation.NavigateTo("my-orders"))">Meus Pedidos</MudMenuItem>
+                    <MudMenuItem OnClick="@HandleLogout">Sair</MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("login"))">Entrar</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+        <MudNavMenu>
+            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="ml-4 mt-3">Cliente</MudText>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
+            <MudNavLink Href="/menu" Icon="@Icons.Material.Filled.Fastfood">Fazer Pedido</MudNavLink>
+            <MudNavLink Href="/my-orders" Icon="@Icons.Material.Filled.History">Meus Pedidos</MudNavLink>
+
+            <AuthorizeView Roles="Admin,Manager,Employee">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="ml-4 mt-6">Administração</MudText>
+                <MudNavLink Href="/admin/orders" Icon="@Icons.Material.Filled.Dashboard">Monitor de Cozinha</MudNavLink>
+                <MudNavLink Href="/admin/categories" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
+                <MudNavLink Href="/admin/catalog" Icon="@Icons.Material.Filled.List">Gerenciar Cardápio</MudNavLink>
+                <MudNavLink Href="/admin/coupons" Icon="@Icons.Material.Filled.ConfirmationNumber">Cupons</MudNavLink>
+            </AuthorizeView>
+            <AuthorizeView Roles="Admin,Manager">
+                <MudText Typo="Typo.subtitle2" Color="Color.Tertiary" Class="ml-4 mt-6">Identidade</MudText>
+                <MudNavLink Href="/admin/identity" Icon="@Icons.Material.Filled.AdminPanelSettings">Gerenciar Usuários</MudNavLink>
+            </AuthorizeView>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = false;
+    [Inject] private IAuthService AuthService { get; set; } = null!;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/");
+    }
+}

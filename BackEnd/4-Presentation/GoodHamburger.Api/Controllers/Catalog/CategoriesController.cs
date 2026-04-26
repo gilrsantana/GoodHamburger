@@ -10,7 +10,7 @@ namespace GoodHamburger.Api.Controllers.Catalog;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CategoriesController : ApiController
+public class CategoriesController : BaseApiController
 {
     private readonly ICreateCategoryHandler _createCategoryHandler;
     private readonly IUpdateCategoryHandler _updateCategoryHandler;

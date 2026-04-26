@@ -8,7 +8,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TokensController : ApiController
+public class TokensController : BaseApiController
 {
     private readonly IGenerateEmailConfirmationTokenHandler _generateEmailConfirmationTokenHandler;
     private readonly IGeneratePasswordResetTokenHandler _generatePasswordResetTokenHandler;

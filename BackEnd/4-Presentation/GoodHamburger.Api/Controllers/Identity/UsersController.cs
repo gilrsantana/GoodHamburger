@@ -9,7 +9,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController : ApiController
+public class UsersController : BaseApiController
 {
     private readonly ICreateUserHandler _createUserHandler;
     private readonly IUpdateUserHandler _updateUserHandler;

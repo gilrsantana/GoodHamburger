@@ -1,0 +1,197 @@
+@page "/admin/catalog"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,Manager")]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Gerenciar Cardápio - Good Hamburger</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Gerenciar Cardápio</MudText>
+
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Itens do Menu">
+        <div class="d-flex justify-end mb-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateItemDialog">Novo Item</MudButton>
+        </div>
+        @if (_loadingItems)
+        {
+            <div class="d-flex justify-center align-center" style="height: 200px;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" />
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@_menuItems" Hover="true" Dense="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Nome</MudTh>
+                    <MudTh>Categoria</MudTh>
+                    <MudTh>Preço</MudTh>
+                    <MudTh>Disponível</MudTh>
+                    <MudTh>Ações</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nome">@context.Name</MudTd>
+                    <MudTd DataLabel="Categoria">@context.CategoryName</MudTd>
+                    <MudTd DataLabel="Preço">@context.Price.ToString("C")</MudTd>
+                    <MudTd DataLabel="Disponível">
+                        <MudSwitch T="bool" Value="@context.IsAvailable" 
+                                   ValueChanged="@((val) => ToggleAvailability(context, val))" 
+                                   Color="Color.Primary" />
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditItemDialog(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteItem(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudTabPanel>
+    
+    <MudTabPanel Text="Ingredientes">
+        <div class="d-flex justify-end mb-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateIngredientDialog">Novo Ingrediente</MudButton>
+        </div>
+        @if (_loadingIngredients)
+        {
+            <div class="d-flex justify-center align-center" style="height: 200px;">
+                <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Size="Size.Medium" />
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@_ingredients" Hover="true" Dense="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Nome</MudTh>
+                    <MudTh>SKU</MudTh>
+                    <MudTh>Preço de Venda</MudTh>
+                    <MudTh>Ações</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nome">@context.Name</MudTd>
+                    <MudTd DataLabel="SKU">@context.Sku</MudTd>
+                    <MudTd DataLabel="Preço">@context.SalePrice.ToString("C")</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    private bool _loadingItems = true;
+    private bool _loadingIngredients = true;
+    private List<MenuItemDto> _menuItems = new();
+    private List<IngredientDto> _ingredients = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCatalog();
+    }
+
+    private async Task LoadCatalog()
+    {
+        _loadingItems = true;
+        _loadingIngredients = true;
+        try
+        {
+            var itemsTask = ApiClient.GetActiveMenuItemsAsync(1, 100);
+            var ingredientsTask = ApiClient.GetAllIngredientsAsync(1, 100);
+
+            await Task.WhenAll(itemsTask, ingredientsTask);
+
+            _menuItems = (await itemsTask).Items.ToList();
+            _ingredients = (await ingredientsTask).Items.ToList();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar dados do catálogo.", Severity.Error);
+        }
+        finally
+        {
+            _loadingItems = false;
+            _loadingIngredients = false;
+        }
+    }
+
+    private async Task ToggleAvailability(MenuItemDto item, bool val)
+    {
+        try
+        {
+            var response = await ApiClient.SetMenuItemAvailabilityAsync(item.Id, val);
+            if (response.Succeeded)
+            {
+                Snackbar.Add($"{item.Name} atualizado.", Severity.Info);
+                await LoadCatalog();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao atualizar disponibilidade." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao atualizar disponibilidade.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteItem(Guid id)
+    {
+        try
+        {
+            var response = await ApiClient.DeleteMenuItemAsync(id);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Item removido.", Severity.Warning);
+                await LoadCatalog();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao remover item." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao remover item.", Severity.Error);
+        }
+    }
+
+    private async Task OpenCreateItemDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateMenuItemDialog>("Novo Item", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool success && success)
+        {
+            await LoadCatalog();
+        }
+    }
+
+    private async Task OpenEditItemDialog(MenuItemDto item)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var parameters = new DialogParameters { { "MenuItem", item } };
+        var dialog = await DialogService.ShowAsync<EditMenuItemDialog>("Editar Item", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool success && success)
+        {
+            await LoadCatalog();
+        }
+    }
+
+    private async Task OpenCreateIngredientDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateIngredientDialog>("Novo Ingrediente", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool success && success)
+        {
+            await LoadCatalog();
+        }
+    }
+}

@@ -9,7 +9,7 @@ namespace GoodHamburger.Api.Controllers.Identity;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class ClaimsController : ApiController
+public class ClaimsController : BaseApiController
 {
     private readonly IAddClaimToUserHandler _addClaimToUserHandler;
     private readonly IRemoveClaimFromUserHandler _removeClaimFromUserHandler;

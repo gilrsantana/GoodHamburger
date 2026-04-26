@@ -1,0 +1,192 @@
+@page "/checkout"
+@using GoodHamburger.FrontEnd.Store.CartUseCase
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IState<CartState> CartState
+@inject IDispatcher Dispatcher
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Checkout - Good Hamburger</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Finalizar Pedido</MudText>
+
+@if (!CartState.Value.Items.Any())
+{
+    <MudAlert Severity="Severity.Warning">Seu carrinho está vazio.</MudAlert>
+    <MudButton Href="/menu" Variant="Variant.Text" Color="Color.Primary" Class="mt-4">Voltar ao Cardápio</MudButton>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="4" Class="pa-6">
+                <MudText Typo="Typo.h6" Class="mb-4">Endereço de Entrega</MudText>
+                <MudForm @ref="_form" @bind-IsValid="@_success">
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudTextField T="string" Label="Logradouro" Required="true" @bind-Value="_address.StreetName" />
+                        </MudItem>
+                        <MudItem xs="4">
+                            <MudTextField T="string" Label="Número" Required="true" @bind-Value="_address.Number" />
+                        </MudItem>
+                        <MudItem xs="8">
+                            <MudTextField T="string" Label="Complemento" @bind-Value="_address.Complement" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" Label="CEP" Required="true" @bind-Value="_address.ZipCode" />
+                        </MudItem>
+                    </MudGrid>
+                </MudForm>
+
+                <MudDivider Class="my-6" />
+
+                <MudText Typo="Typo.h6" Class="mb-4">Cupom de Desconto</MudText>
+                <div class="d-flex align-center">
+                    <MudTextField T="string" Label="Código do Cupom" @bind-Value="_couponCode" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-2" OnClick="ApplyCoupon">Aplicar</MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="4" Class="pa-6">
+                <MudText Typo="Typo.h6" Class="mb-4">Resumo do Pedido</MudText>
+                @foreach (var item in CartState.Value.Items)
+                {
+                    <div class="d-flex justify-space-between mb-2">
+                        <MudText>@item.MenuItem.Name</MudText>
+                        <MudText>@item.TotalPrice.ToString("C")</MudText>
+                    </div>
+                }
+                
+                <MudDivider Class="my-4" />
+
+                <div class="d-flex justify-space-between">
+                    <MudText>Subtotal:</MudText>
+                    <MudText>@CartState.Value.TotalItemsPrice.ToString("C")</MudText>
+                </div>
+
+                @if (CartState.Value.PotentialDiscountPercentage > 0)
+                {
+                    <div class="d-flex justify-space-between">
+                        <MudText Color="Color.Success">Combo Discount (@CartState.Value.PotentialDiscountPercentage.ToString("P0")):</MudText>
+                        <MudText Color="Color.Success">-@CartState.Value.DiscountAmount.ToString("C")</MudText>
+                    </div>
+                }
+
+                @if (_couponDiscount > 0)
+                {
+                    <div class="d-flex justify-space-between">
+                        <MudText Color="Color.Success">Cupom:</MudText>
+                        <MudText Color="Color.Success">-@_couponDiscount.ToString("C")</MudText>
+                    </div>
+                }
+
+                <div class="d-flex justify-space-between mt-4">
+                    <MudText Typo="Typo.h6">Total Geral:</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">@((CartState.Value.FinalAmount - (decimal)_couponDiscount).ToString("C"))</MudText>
+                </div>
+
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Success" 
+                           FullWidth="true" 
+                           Class="mt-6" 
+                           Size="Size.Large"
+                           Disabled="@(!_success || _processing)"
+                           OnClick="SubmitOrder">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">Processando...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Confirmar Pedido</MudText>
+                    }
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private MudForm _form = null!;
+    private bool _success;
+    private bool _processing;
+    private string? _couponCode;
+    private double _couponDiscount = 0;
+    private Address _address = new Address();
+
+    private async Task ApplyCoupon()
+    {
+        if (string.IsNullOrWhiteSpace(_couponCode)) return;
+
+        try
+        {
+            var response = await ApiClient.GetCouponByCodeAsync(_couponCode);
+            if (response.Coupon != null && response.Coupon.Active)
+            {
+                _couponDiscount = response.Coupon.IsPercentage 
+                    ? (double)CartState.Value.FinalAmount * (response.Coupon.Value / 100.0)
+                    : response.Coupon.Value;
+                
+                Snackbar.Add("Cupom aplicado com sucesso!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Cupom inválido ou expirado.", Severity.Error);
+                _couponDiscount = 0;
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao validar o cupom.", Severity.Error);
+        }
+    }
+
+    private async Task SubmitOrder()
+    {
+        _processing = true;
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userIdClaim = authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier") 
+                            ?? authState.User.FindFirst("sub") 
+                            ?? authState.User.FindFirst("userId");
+            
+            var customerId = userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var guid) ? guid : Guid.Empty;
+
+            var command = new CreateOrderCommand(
+                customerId,
+                _address,
+                0, // Delivery Fee
+                CartState.Value.Items.Select(i => new OrderItemCommand(i.MenuItem.Id, i.Quantity, null, i.Extras)),
+                _couponCode
+            );
+
+            var response = await ApiClient.CreateOrderAsync(command);
+
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Pedido realizado com sucesso!", Severity.Success);
+                Dispatcher.Dispatch(new ClearCartAction());
+                Navigation.NavigateTo($"/orders/success/{response.OrderId}");
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro desconhecido" }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao processar o pedido.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

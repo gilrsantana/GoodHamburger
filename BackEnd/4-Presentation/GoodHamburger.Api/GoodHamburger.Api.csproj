@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\3-Infrastructure\GoodHamburger.Database\GoodHamburger.Database.csproj" />
     <ProjectReference Include="..\..\3-Infrastructure\GoodHamburger.Infrastructure\GoodHamburger.Infrastructure.csproj" />
     <ProjectReference Include="..\..\3-Infrastructure\GoodHamburger.Observability\GoodHamburger.Observability.csproj" />
+    <ProjectReference Include="..\..\3-Infrastructure\GoodHamburger.ExternalProviders\GoodHamburger.ExternalProviders.csproj" />
   </ItemGroup>
 
   <ItemGroup>

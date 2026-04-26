@@ -9,7 +9,7 @@ namespace GoodHamburger.Api.Controllers.Accounts;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CustomerProfilesController : ApiController
+public class CustomerProfilesController : BaseApiController
 {
     private readonly ICreateCustomerProfileHandler _createCustomerProfileHandler;
     private readonly IUpdateCustomerProfileHandler _updateCustomerProfileHandler;

@@ -1,0 +1,178 @@
+@page "/admin/identity"
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize(Roles = "Admin,Manager")]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Gerenciar Identidade - Good Hamburger</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-6">Gerenciar Identidade</MudText>
+
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Usuários">
+        <div class="d-flex justify-end mb-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="OpenCreateUserDialog">Novo Usuário</MudButton>
+        </div>
+        @if (_loadingUsers)
+        {
+            <div class="d-flex justify-center align-center" style="height: 400px;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </div>
+        }
+        else
+        {
+            <MudTable Items="@_users" Hover="true" Elevation="4" Breakpoint="Breakpoint.Sm" T="UserDto">
+                <HeaderContent>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Nome</MudTh>
+                    <MudTh>Funções</MudTh>
+                    <MudTh>Ações</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="user">
+                    <MudTd DataLabel="Email">@user.Email</MudTd>
+                    <MudTd DataLabel="Nome">@user.FullName</MudTd>
+                    <MudTd DataLabel="Funções">
+                        @if (user.Roles != null && user.Roles.Any())
+                        {
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Small">@string.Join(", ", user.Roles)</MudChip>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2">Sem funções</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Ações">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditUserDialog(user))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Security" Size="Size.Small" OnClick="@(() => OpenRolesDialog(user))" />
+                        @if (user.Email != User?.Identity?.Name)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteUser(user.Id))" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudTabPanel>
+
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <MudTabPanel Text="Funções">
+                <div class="d-flex justify-end mb-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateRoleDialog">Nova Função</MudButton>
+                </div>
+                @if (_loadingRoles)
+                {
+                    <div class="d-flex justify-center align-center" style="height: 400px;">
+                        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Size="Size.Large" />
+                    </div>
+                }
+                else
+                {
+                    <MudTable Items="@_roles" Hover="true" Elevation="4" Breakpoint="Breakpoint.Sm" T="string">
+                        <HeaderContent>
+                            <MudTh>Nome</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="role">
+                            <MudTd DataLabel="Nome">@role</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudTabPanel>
+        </Authorized>
+    </AuthorizeView>
+</MudTabs>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+    private ClaimsPrincipal User => AuthenticationStateTask.Result.User;
+
+    private bool _loadingUsers = true;
+    private bool _loadingRoles = true;
+    private List<UserDto> _users = new();
+    private List<string> _roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+        await LoadRoles();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loadingUsers = true;
+        try
+        {
+            var response = await ApiClient.GetAllUsersAsync(1, 100);
+            _users = response.Items?.ToList() ?? new();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar usuários.", Severity.Error);
+        }
+        finally
+        {
+            _loadingUsers = false;
+        }
+    }
+
+    private async Task LoadRoles()
+    {
+        _loadingRoles = true;
+        try
+        {
+            var response = await ApiClient.GetAllRolesAsync();
+            _roles = response.Roles?.ToList() ?? new();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar funções.", Severity.Error);
+        }
+        finally
+        {
+            _loadingRoles = false;
+        }
+    }
+
+    private async Task OpenCreateUserDialog()
+    {
+        Snackbar.Add("Funcionalidade de criar usuário em desenvolvimento.", Severity.Info);
+    }
+
+    private void OpenEditUserDialog(UserDto user)
+    {
+        Snackbar.Add($"Funcionalidade de editar usuário {user.Email} em desenvolvimento.", Severity.Info);
+    }
+
+    private void OpenRolesDialog(UserDto user)
+    {
+        Snackbar.Add($"Funcionalidade de gerenciar funções do usuário {user.Email} em desenvolvimento.", Severity.Info);
+    }
+
+    private async Task DeleteUser(string userId)
+    {
+        try
+        {
+            var response = await ApiClient.DeleteUserAsync(userId);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Usuário removido.", Severity.Warning);
+                await LoadUsers();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao remover usuário." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao remover usuário.", Severity.Error);
+        }
+    }
+
+    private void OpenCreateRoleDialog()
+    {
+        Snackbar.Add("Funcionalidade de criar função em desenvolvimento.", Severity.Info);
+    }
+}

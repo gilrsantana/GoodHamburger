@@ -1,0 +1,152 @@
+@page "/admin/categories"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,Manager")]
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Gerenciar Categorias - Good Hamburger</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-6">
+    <MudText Typo="Typo.h4">Gerenciar Categorias</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateCategoryDialog">Nova Categoria</MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center align-center" style="height: 400px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!_categories.Any())
+{
+    <MudAlert Severity="Severity.Info">Nenhuma categoria encontrada.</MudAlert>
+}
+else
+{
+    <MudTable Items="@_categories" Hover="true" Elevation="4" Breakpoint="Breakpoint.Sm" T="CategoryDto">
+        <HeaderContent>
+            <MudTh>Nome</MudTh>
+            <MudTh>Tipo</MudTh>
+            <MudTh>Slug</MudTh>
+            <MudTh>Ordem</MudTh>
+            <MudTh>Ativo</MudTh>
+            <MudTh>Ações</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Nome">@context.Name</MudTd>
+            <MudTd DataLabel="Tipo">@context.Type.ToString()</MudTd>
+            <MudTd DataLabel="Slug">@context.Slug</MudTd>
+            <MudTd DataLabel="Ordem">@context.DisplayOrder</MudTd>
+            <MudTd DataLabel="Ativo">
+                <MudCheckBox T="bool" Value="@context.Active" ReadOnly="true" Color="Color.Primary" />
+            </MudTd>
+            <MudTd DataLabel="Ações">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditCategoryDialog(context))" />
+                @if (context.Active)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Block" Color="Color.Warning" Size="Size.Small" OnClick="@(() => DeactivateCategory(context.Id))" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" OnClick="@(() => ActivateCategory(context.Id))" />
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private bool _loading = true;
+    private List<CategoryDto> _categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        _loading = true;
+        try
+        {
+            var response = await ApiClient.GetAllCategoriesAsync(1, 100);
+            _categories = response.Items.ToList();
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar categorias.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenCreateCategoryDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Nova Categoria", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool success && success)
+        {
+            await LoadCategories();
+        }
+    }
+
+    private async Task OpenEditCategoryDialog(CategoryDto category)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var parameters = new DialogParameters { { "Category", category } };
+        var dialog = await DialogService.ShowAsync<EditCategoryDialog>("Editar Categoria", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool success && success)
+        {
+            await LoadCategories();
+        }
+    }
+
+    private async Task ActivateCategory(Guid id)
+    {
+        try
+        {
+            var response = await ApiClient.ActivateCategoryAsync(id);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Categoria ativada.", Severity.Success);
+                await LoadCategories();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao ativar categoria." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao ativar categoria.", Severity.Error);
+        }
+    }
+
+    private async Task DeactivateCategory(Guid id)
+    {
+        try
+        {
+            var response = await ApiClient.DeactivateCategoryAsync(id);
+            if (response.Succeeded)
+            {
+                Snackbar.Add("Categoria desativada.", Severity.Warning);
+                await LoadCategories();
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", response.Errors ?? new[] { "Erro ao desativar categoria." }), Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao desativar categoria.", Severity.Error);
+        }
+    }
+}
