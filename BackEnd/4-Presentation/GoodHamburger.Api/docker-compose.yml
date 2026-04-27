@@ -11,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - goodhamburger-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -25,6 +27,8 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - db
+    networks:
+      - goodhamburger-network
 
   lgtm:
     image: grafana/otel-lgtm:latest
