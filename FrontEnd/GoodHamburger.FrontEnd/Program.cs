@@ -26,9 +26,12 @@ builder.Services.AddTransient<GlobalHttpHandler>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // API Client using the Global Handler
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? 
+    (builder.HostEnvironment.IsDevelopment() ? "http://localhost:5275" : "http://localhost:8500");
+
 builder.Services.AddHttpClient<IGoodHamburgerClient, GoodHamburgerClient>(client => 
 {
-    client.BaseAddress = new Uri("http://localhost:5275");
+    client.BaseAddress = new Uri(apiBaseUrl);
 })
 .AddHttpMessageHandler<GlobalHttpHandler>();
 

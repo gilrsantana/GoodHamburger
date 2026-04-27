@@ -28,7 +28,7 @@ public static class AppConfiguration
                 options.AddPolicy("AllowBlazor",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5100")
+                        policy.WithOrigins("http://localhost:5100", "http://localhost:3001")
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials();

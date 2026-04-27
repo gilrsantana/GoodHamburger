@@ -42,6 +42,7 @@ This separation of concerns promotes maintainability, testability, and scalabili
     *   PostgreSQL database
     *   PGAdmin (for database management)
     *   Grafana (for visualizing metrics and traces from OpenTelemetry)
+    *   Blazor WebAssembly Frontend (served by Nginx)
     *   The Good Hamburger API itself.
     This simplifies setup and ensures a consistent development and deployment environment.
 
@@ -57,7 +58,109 @@ This separation of concerns promotes maintainability, testability, and scalabili
 *   .NET SDK (version specified in `global.json` or project files)
 *   Docker and Docker Compose
 
-**Steps:**
+### Docker Setup (Recommended)
+
+The project includes a complete Docker setup with all services orchestrated via `docker-compose.yml`.
+
+#### Services
+
+**Frontend (Blazor WebAssembly)**
+- **Container**: `goodhamburger_frontend`
+- **Port**: `3001:80`
+- **Technology**: .NET 10.0 Blazor WebAssembly served by Nginx
+- **Access**: http://localhost:3001
+
+**Backend API**
+- **Container**: `goodhamburger_api`
+- **Port**: `8500:8080`, `8501:8081`
+- **Technology**: .NET 10.0 Web API
+- **Access**: http://localhost:8500 (Swagger UI)
+
+**Database**
+- **Container**: `goodhamburger_db`
+- **Port**: `5432:5432`
+- **Technology**: PostgreSQL 15 Alpine
+- **Credentials**: admin/password123
+
+**PgAdmin**
+- **Container**: `goodhamburger_pgadmin`
+- **Port**: `8432:80`
+- **Technology**: PgAdmin 4
+- **Access**: http://localhost:8432
+- **Credentials**: admin@admin.com/admin
+
+**Observability (LGTM)**
+- **Container**: `goodhamburger_lgtm`
+- **Ports**: 
+  - `3000:3000` (Grafana UI)
+  - `4317:4317` (OTLP gRPC)
+  - `4318:4318` (OTLP HTTP)
+  - `9411:9411` (Zipkin)
+- **Access**: http://localhost:3000
+
+#### Quick Start
+
+1. **Start all services:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Stop all services:**
+   ```bash
+   docker-compose down
+   ```
+
+3. **View logs:**
+   ```bash
+   docker-compose logs -f [service_name]
+   ```
+
+4. **Rebuild specific service:**
+   ```bash
+   docker-compose up -d --build [service_name]
+   ```
+
+#### Network Configuration
+
+All services are connected to a custom Docker network `goodhamburger-network` for secure inter-service communication. The frontend communicates with the API using the configured base URL.
+
+#### Environment Variables
+
+**Frontend**
+- `ApiBaseUrl=http://localhost:8500` - API endpoint URL
+
+**API**
+- `ASPNETCORE_ENVIRONMENT=Development`
+- `ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=GoodHamburgerDb;Username=admin;Password=password123`
+- `SRE__OtlpEndpointUrl=http://lgtm:4317`
+- `SRE__Nome=GoodHamburger.Api.Docker`
+- `SRE__Habilitado=true`
+- `SRE__UtilizaConsoleLog=true`
+
+#### CORS Configuration
+
+The API is configured to allow requests from:
+- `http://localhost:5100` (Development)
+- `http://localhost:3001` (Docker Frontend)
+
+#### Troubleshooting
+
+**Frontend API Connection Issues**
+
+If you encounter `ERR_NAME_NOT_RESOLVED` errors:
+
+1. **Check API URL in appsettings.json** - Ensure it points to `http://localhost:8500` for Docker
+2. **Verify CORS policy** - Make sure frontend URL is included in API CORS configuration
+3. **Check container networking** - All containers should be on the same Docker network
+
+**Common Issues**
+- **CORS errors**: Update CORS policy in `AppConfiguration.cs` to include frontend URL
+- **Network resolution**: Use `localhost:port` instead of container hostnames for browser-based requests
+- **Port conflicts**: Ensure no other services are using the same ports
+
+### Manual Development Setup
+
+If you prefer to run the project manually without Docker:
 
 1.  **Clone the repository:**
     ```bash
@@ -65,33 +168,26 @@ This separation of concerns promotes maintainability, testability, and scalabili
     cd GoodHamburger
     ```
 
-2.  **Start the Docker services:**
-    Navigate to the root of the project where `docker-compose.yml` is located and run:
-    ```bash
-    docker-compose up --build -d
-    ```
-    This will build the API image, and start PostgreSQL, PGAdmin, Grafana, and the API.
-
-3.  **Apply Database Migrations:**
-    Once the PostgreSQL container is running, apply the database migrations. You can do this by executing the following commands from the `BackEnd/4-Presentation/GoodHamburger.Api` directory:
+2.  **Apply Database Migrations:**
+    Execute the following commands from the `BackEnd/4-Presentation/GoodHamburger.Api` directory:
     ```bash
     dotnet ef database update --project ../../3-Infrastructure/GoodHamburger.Database/GoodHamburger.Database.csproj --startup-project .
     dotnet ef database update --project ../../3-Infrastructure/GoodHamburger.Database/GoodHamburger.Database.csproj --startup-project . --context IdentityDbContext
     ```
     *(Note: You might need to run `dotnet tool install --global dotnet-ef` if `dotnet ef` command is not found.)*
 
-4.  **Access the API Documentation:**
-    The API will be available at `http://localhost:5000` (or the port configured in `launchSettings.json` and `docker-compose.yml`).
-    The Swagger UI documentation can be accessed at `http://localhost:5000/swagger`.
-
-5.  **Access PGAdmin:**
-    PGAdmin will be available at `http://localhost:5050`. You can log in with the credentials defined in `docker-compose.yml`.
-
-6.  **Access Grafana (OpenTelemetry):**
-    Grafana will be available at `http://localhost:3000`. You can log in with the credentials defined in `docker-compose.yml`.
-
-7.  **Stop the Docker services:**
-    To stop and remove the containers, networks, and volumes created by `docker-compose`, run:
+3.  **Run the API:**
     ```bash
-    docker-compose down
+    cd BackEnd/4-Presentation/GoodHamburger.Api
+    dotnet run
     ```
+
+4.  **Run the Frontend:**
+    ```bash
+    cd FrontEnd/GoodHamburger.FrontEnd
+    dotnet run
+    ```
+
+5.  **Access the Applications:**
+    - **Frontend**: http://localhost:5100 (or as configured in launchSettings.json)
+    - **API Swagger**: http://localhost:5275/swagger (or as configured in launchSettings.json)

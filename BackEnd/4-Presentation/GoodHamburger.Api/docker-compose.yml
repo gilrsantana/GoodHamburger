@@ -66,6 +66,21 @@ services:
     networks:
       - goodhamburger-network
 
+  frontend:
+    build:
+      context: ../../..
+      dockerfile: FrontEnd/GoodHamburger.FrontEnd/Dockerfile
+    container_name: goodhamburger_frontend
+    restart: always
+    ports:
+      - "3001:80"
+    environment:
+      - ApiBaseUrl=http://api:8080
+    depends_on:
+      - api
+    networks:
+      - goodhamburger-network
+
 networks:
   goodhamburger-network:
     driver: bridge
