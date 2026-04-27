@@ -13,6 +13,7 @@ COPY ["BackEnd/2-Application/GoodHamburger.Application/GoodHamburger.Application
 COPY ["BackEnd/3-Infrastructure/GoodHamburger.Database/GoodHamburger.Database.csproj", "BackEnd/3-Infrastructure/GoodHamburger.Database/"]
 COPY ["BackEnd/3-Infrastructure/GoodHamburger.Infrastructure/GoodHamburger.Infrastructure.csproj", "BackEnd/3-Infrastructure/GoodHamburger.Infrastructure/"]
 COPY ["BackEnd/3-Infrastructure/GoodHamburger.Observability/GoodHamburger.Observability.csproj", "BackEnd/3-Infrastructure/GoodHamburger.Observability/"]
+COPY ["BackEnd/3-Infrastructure/GoodHamburger.ExternalProviders/GoodHamburger.ExternalProviders.csproj", "BackEnd/3-Infrastructure/GoodHamburger.ExternalProviders/"]
 COPY ["BackEnd/4-Presentation/GoodHamburger.Api/GoodHamburger.Api.csproj", "BackEnd/4-Presentation/GoodHamburger.Api/"]
 RUN dotnet restore "BackEnd/4-Presentation/GoodHamburger.Api/GoodHamburger.Api.csproj"
 COPY . .

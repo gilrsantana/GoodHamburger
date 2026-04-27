@@ -143,6 +143,78 @@ The API is configured to allow requests from:
 - `http://localhost:5100` (Development)
 - `http://localhost:3001` (Docker Frontend)
 
+#### Seed Data
+
+The application automatically seeds initial data when started, including roles and users for testing and demonstration purposes.
+
+**Default Roles**
+
+The system creates four default roles with the following hierarchy:
+
+1. **Admin**
+   - **Description**: The main role. Admin role can configure and administrate all resources of the application. The highest level
+   - **Access**: Full system configuration and management
+
+2. **Manager**
+   - **Description**: An intermediate role. Manager role can administrate resources of the application. An intermediate level
+   - **Access**: Management of resources, lower than Admin
+
+3. **Employee**
+   - **Description**: An intermediate role. Employee role can operate resources of the application. An intermediate level, lowest than Manager
+   - **Access**: Operational tasks, lower than Manager
+
+4. **User**
+   - **Description**: The basic role. User role can only use the application. The lowest level
+   - **Access**: Basic application usage only
+
+**Default Users**
+
+The system creates four default users with corresponding profiles:
+
+1. **Admin User**
+   - **Email**: `admin@goodhamburger.com`
+   - **Username**: `Admin`
+   - **Password**: `Admin@123456`
+   - **Role**: Admin
+   - **Profile**: Employee profile with code `EMP-[last_5_chars_of_user_id]`
+
+2. **Manager User**
+   - **Email**: `manager@goodhamburger.com`
+   - **Username**: `Manager`
+   - **Password**: `Manager@123456`
+   - **Role**: Manager
+   - **Profile**: Employee profile with code `EMP-[last_5_chars_of_user_id]`
+
+3. **Employee User**
+   - **Email**: `employee@goodhamburger.com`
+   - **Username**: `Employee`
+   - **Password**: `Employee@123456`
+   - **Role**: Employee
+   - **Profile**: Employee profile with code `EMP-[last_5_chars_of_user_id]`
+
+4. **Customer User**
+   - **Email**: `user@goodhamburger.com`
+   - **Username**: `User`
+   - **Password**: `User@123456`
+   - **Role**: User
+   - **Profile**: Customer profile with:
+     - **Document**: Auto-generated valid CPF number
+     - **Address**: Rua Doralice Paixão Teixeira, 69, Pinheiros, São Paulo/SP, 05417070, 2B 402
+
+**Profile Types**
+
+- **Employee Profiles**: Created for Admin, Manager, and Employee users with employee codes
+- **Customer Profiles**: Created for regular users with CPF documents and full addresses
+
+**Location Data**
+
+The seeder also creates default location data for Brazil:
+- **Country**: Brasil (BRA)
+- **State**: São Paulo (SP)
+- **City**: São Paulo
+- **Neighborhood**: Pinheiros
+- **Street Type**: Rua
+
 #### Troubleshooting
 
 **Frontend API Connection Issues**
