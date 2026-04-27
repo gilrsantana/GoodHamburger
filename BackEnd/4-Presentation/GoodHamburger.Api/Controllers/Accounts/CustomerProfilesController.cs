@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using GoodHamburger.Api.Controllers.Base;
 using GoodHamburger.Application.AccountServices.Commands;
 using GoodHamburger.Application.AccountServices.Queries;
@@ -65,13 +66,17 @@ public class CustomerProfilesController : BaseApiController
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "Management")]
     [ProducesResponseType(typeof(UpdateCustomerProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCustomerProfile(Guid id, [FromBody] UpdateCustomerProfileCommand command, CancellationToken cancellationToken)
     {
-        var updateCommand = command with { CustomerProfileId = id };
+        if (UserInValidToPerformAction(id))
+        {
+            return HandleFailure(Result<UpdateCustomerProfileResponse>.Failure(
+                new Error("Customer.Unauthorized", "You are not authorized to update this customer profile.")));
+        }
+        var updateCommand = command with { IdentityId = id };
         var result = await _updateCustomerProfileHandler.HandleAsync(updateCommand, cancellationToken);
 
         return result.IsSuccess
@@ -79,15 +84,21 @@ public class CustomerProfilesController : BaseApiController
             : HandleFailure(result);
     }
 
+    
+
     [HttpPut("{id}/document")]
-    [Authorize(Policy = "Management")]
     [ProducesResponseType(typeof(UpdateCustomerDocumentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateCustomerDocument(Guid id, [FromBody] UpdateCustomerDocumentCommand command, CancellationToken cancellationToken)
     {
-        var updateCommand = command with { CustomerProfileId = id };
+        if (UserInValidToPerformAction(id))
+        {
+            return HandleFailure(Result<UpdateCustomerProfileResponse>.Failure(
+                new Error("Customer.Unauthorized", "You are not authorized to update this customer profile.")));
+        }
+        var updateCommand = command with { IdentityId = id };
         var result = await _updateCustomerDocumentHandler.HandleAsync(updateCommand, cancellationToken);
 
         return result.IsSuccess
@@ -96,13 +107,17 @@ public class CustomerProfilesController : BaseApiController
     }
 
     [HttpPut("{id}/address")]
-    [Authorize(Policy = "Management")]
     [ProducesResponseType(typeof(UpdateCustomerAddressResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCustomerAddress(Guid id, [FromBody] UpdateCustomerAddressCommand command, CancellationToken cancellationToken)
     {
-        var updateCommand = command with { CustomerProfileId = id };
+        if (UserInValidToPerformAction(id))
+        {
+            return HandleFailure(Result<UpdateCustomerProfileResponse>.Failure(
+                new Error("Customer.Unauthorized", "You are not authorized to update this customer profile.")));
+        }
+        var updateCommand = command with { IdentityId = id };
         var result = await _updateCustomerAddressHandler.HandleAsync(updateCommand, cancellationToken);
 
         return result.IsSuccess
@@ -111,13 +126,17 @@ public class CustomerProfilesController : BaseApiController
     }
 
     [HttpPut("{id}/birth-date")]
-    [Authorize(Policy = "Management")]
     [ProducesResponseType(typeof(UpdateCustomerBirthDateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCustomerBirthDate(Guid id, [FromBody] UpdateCustomerBirthDateCommand command, CancellationToken cancellationToken)
     {
-        var updateCommand = command with { CustomerProfileId = id };
+        if (UserInValidToPerformAction(id))
+        {
+            return HandleFailure(Result<UpdateCustomerProfileResponse>.Failure(
+                new Error("Customer.Unauthorized", "You are not authorized to update this customer profile.")));
+        }
+        var updateCommand = command with { IdentityId = id };
         var result = await _updateCustomerBirthDateHandler.HandleAsync(updateCommand, cancellationToken);
 
         return result.IsSuccess

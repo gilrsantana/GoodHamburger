@@ -53,60 +53,67 @@ else
 
         <MudItem xs="12" md="5">
             <MudPaper Elevation="4" Class="pa-6">
-                <MudText Typo="Typo.h6" Class="mb-4">Resumo do Pedido</MudText>
-                @foreach (var item in CartState.Value.Items)
+                @if (_calculating)
                 {
-                    <div class="d-flex justify-space-between mb-2">
-                        <MudText>@item.MenuItem.Name</MudText>
-                        <MudText>@item.TotalPrice.ToString("C")</MudText>
+                    <div class="d-flex justify-center align-center" style="height: 200px;">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" />
                     </div>
                 }
-                
-                <MudDivider Class="my-4" />
-
-                <div class="d-flex justify-space-between">
-                    <MudText>Subtotal:</MudText>
-                    <MudText>@CartState.Value.TotalItemsPrice.ToString("C")</MudText>
-                </div>
-
-                @if (CartState.Value.PotentialDiscountPercentage > 0)
+                else if (_calculation != null)
                 {
-                    <div class="d-flex justify-space-between">
-                        <MudText Color="Color.Success">Combo Discount (@CartState.Value.PotentialDiscountPercentage.ToString("P0")):</MudText>
-                        <MudText Color="Color.Success">-@CartState.Value.DiscountAmount.ToString("C")</MudText>
-                    </div>
-                }
-
-                @if (_couponDiscount > 0)
-                {
-                    <div class="d-flex justify-space-between">
-                        <MudText Color="Color.Success">Cupom:</MudText>
-                        <MudText Color="Color.Success">-@_couponDiscount.ToString("C")</MudText>
-                    </div>
-                }
-
-                <div class="d-flex justify-space-between mt-4">
-                    <MudText Typo="Typo.h6">Total Geral:</MudText>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">@((CartState.Value.FinalAmount - (decimal)_couponDiscount).ToString("C"))</MudText>
-                </div>
-
-                <MudButton Variant="Variant.Filled" 
-                           Color="Color.Success" 
-                           FullWidth="true" 
-                           Class="mt-6" 
-                           Size="Size.Large"
-                           Disabled="@(!_success || _processing)"
-                           OnClick="SubmitOrder">
-                    @if (_processing)
+                    <MudText Typo="Typo.h6" Class="mb-4">Resumo do Pedido</MudText>
+                    @foreach (var item in _calculation.Items)
                     {
-                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                        <MudText Class="ms-2">Processando...</MudText>
+                        <div class="d-flex justify-space-between mb-2">
+                            <div>
+                                <MudText>@item.ProductName</MudText>
+                                @if (item.Quantity > 1)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Primary">Quantidade: @item.Quantity</MudText>
+                                }
+                            </div>
+                            <MudText>@item.TotalItemPrice.ToString("C")</MudText>
+                        </div>
                     }
-                    else
+                    
+                    <MudDivider Class="my-4" />
+
+                    <div class="d-flex justify-space-between">
+                        <MudText>Subtotal:</MudText>
+                        <MudText>@_calculation.Subtotal.ToString("C")</MudText>
+                    </div>
+
+                    @if (_calculation.AppliedDiscount != null)
                     {
-                        <MudText>Confirmar Pedido</MudText>
+                        <div class="d-flex justify-space-between">
+                            <MudText Color="Color.Success">@_calculation.AppliedDiscount.Name:</MudText>
+                            <MudText Color="Color.Success">-@_calculation.DiscountAmount.ToString("C")</MudText>
+                        </div>
                     }
-                </MudButton>
+
+                    <div class="d-flex justify-space-between mt-4">
+                        <MudText Typo="Typo.h6">Total Geral:</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">@_calculation.Total.ToString("C")</MudText>
+                    </div>
+
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Success" 
+                               FullWidth="true" 
+                               Class="mt-6" 
+                               Size="Size.Large"
+                               Disabled="@(!_success || _processing)"
+                               OnClick="SubmitOrder">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Processando...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Confirmar Pedido</MudText>
+                        }
+                    </MudButton>
+                }
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -116,34 +123,55 @@ else
     private MudForm _form = null!;
     private bool _success;
     private bool _processing;
+    private bool _calculating;
     private string? _couponCode;
-    private double _couponDiscount = 0;
     private Address _address = new Address();
+    private CheckoutCalculationResponse? _calculation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CalculateCheckout();
+    }
+
+    private async Task CalculateCheckout()
+    {
+        _calculating = true;
+        try
+        {
+            var items = CartState.Value.Items.Select(i => new CheckoutItemDto(
+                i.MenuItem.Id,
+                i.Quantity,
+                null,
+                i.Extras.Select(e => new CheckoutExtraDto(e.IngredientId, e.Name, e.Price)).ToList()
+            )).ToList();
+
+            var query = new CheckoutCalculationQuery(items, _couponCode, 0);
+            var response = await ApiClient.CalculateCheckoutAsync(query);
+            _calculation = response;
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao calcular o pedido.", Severity.Error);
+        }
+        finally
+        {
+            _calculating = false;
+        }
+    }
 
     private async Task ApplyCoupon()
     {
         if (string.IsNullOrWhiteSpace(_couponCode)) return;
 
-        try
+        await CalculateCheckout();
+        
+        if (_calculation != null && _calculation.AppliedDiscount != null)
         {
-            var response = await ApiClient.GetCouponByCodeAsync(_couponCode);
-            if (response.Coupon != null && response.Coupon.Active)
-            {
-                _couponDiscount = response.Coupon.IsPercentage 
-                    ? (double)CartState.Value.FinalAmount * (response.Coupon.Value / 100.0)
-                    : response.Coupon.Value;
-                
-                Snackbar.Add("Cupom aplicado com sucesso!", Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add("Cupom inválido ou expirado.", Severity.Error);
-                _couponDiscount = 0;
-            }
+            Snackbar.Add("Cupom aplicado com sucesso!", Severity.Success);
         }
-        catch
+        else
         {
-            Snackbar.Add("Erro ao validar o cupom.", Severity.Error);
+            Snackbar.Add("Cupom inválido ou expirado.", Severity.Error);
         }
     }
 

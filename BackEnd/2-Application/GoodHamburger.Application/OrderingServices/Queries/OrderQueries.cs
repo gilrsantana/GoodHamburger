@@ -1,7 +1,53 @@
+using GoodHamburger.Domain.Catalog.Enums;
 using GoodHamburger.Domain.Ordering.Enums;
 using GoodHamburger.Shared.ValueObjects.Locations;
 
 namespace GoodHamburger.Application.OrderingServices.Queries;
+
+public record CheckoutCalculationQuery(
+    IReadOnlyList<CheckoutItemDto> Items,
+    string? CouponCode = null,
+    decimal? DeliveryFee = null
+);
+
+public record CheckoutItemDto(
+    Guid MenuItemId,
+    int Quantity,
+    string? Note = null,
+    IReadOnlyList<CheckoutExtraDto>? Extras = null
+);
+
+public record CheckoutExtraDto(
+    Guid IngredientId,
+    string Name,
+    decimal Price
+);
+
+public record CheckoutCalculationResponse(
+    decimal Subtotal,
+    decimal DeliveryFee,
+    decimal DiscountAmount,
+    decimal Total,
+    IReadOnlyList<CheckoutItemResponseDto> Items,
+    DiscountDto? AppliedDiscount
+);
+
+public record CheckoutItemResponseDto(
+    Guid MenuItemId,
+    string ProductName,
+    string Sku,
+    decimal UnitPrice,
+    int Quantity,
+    decimal TotalItemPrice,
+    string? Note,
+    IReadOnlyList<CheckoutExtraDto> Extras
+);
+
+public record DiscountDto(
+    string Name,
+    decimal Amount,
+    string? CouponCode
+);
 
 public record GetAllOrdersQuery(int Page = 1, int PageSize = 10);
 

@@ -19,6 +19,7 @@ public class OrdersController : BaseApiController
     private readonly IGetOrderByIdHandler _getOrderByIdHandler;
     private readonly IGetOrdersByCustomerHandler _getOrdersByCustomerHandler;
     private readonly IGetOrdersByStatusHandler _getOrdersByStatusHandler;
+    private readonly ICheckoutCalculationHandler _checkoutCalculationHandler;
 
     public OrdersController(
         ICreateOrderHandler createOrderHandler,
@@ -27,7 +28,8 @@ public class OrdersController : BaseApiController
         IGetAllOrdersHandler getAllOrdersHandler,
         IGetOrderByIdHandler getOrderByIdHandler,
         IGetOrdersByCustomerHandler getOrdersByCustomerHandler,
-        IGetOrdersByStatusHandler getOrdersByStatusHandler)
+        IGetOrdersByStatusHandler getOrdersByStatusHandler,
+        ICheckoutCalculationHandler checkoutCalculationHandler)
     {
         _createOrderHandler = createOrderHandler;
         _updateOrderStatusHandler = updateOrderStatusHandler;
@@ -36,6 +38,7 @@ public class OrdersController : BaseApiController
         _getOrderByIdHandler = getOrderByIdHandler;
         _getOrdersByCustomerHandler = getOrdersByCustomerHandler;
         _getOrdersByStatusHandler = getOrdersByStatusHandler;
+        _checkoutCalculationHandler = checkoutCalculationHandler;
     }
 
     [HttpPost]
@@ -105,6 +108,16 @@ public class OrdersController : BaseApiController
     public async Task<IActionResult> GetByStatus(OrderStatus status, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var result = await _getOrdersByStatusHandler.HandleAsync(new GetOrdersByStatusQuery(status, page, pageSize), cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
+    }
+
+    [HttpPost("checkout/calculate")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(CheckoutCalculationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CalculateCheckout([FromBody] CheckoutCalculationQuery query, CancellationToken cancellationToken)
+    {
+        var result = await _checkoutCalculationHandler.HandleAsync(query, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : HandleFailure(result);
     }
 }

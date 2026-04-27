@@ -113,6 +113,7 @@ public static class ApplicationConfigurationExtensions
         services.AddScoped<IGetOrderByIdHandler, OrderQueryHandlers>();
         services.AddScoped<IGetOrdersByCustomerHandler, OrderQueryHandlers>();
         services.AddScoped<IGetOrdersByStatusHandler, OrderQueryHandlers>();
+        services.AddScoped<ICheckoutCalculationHandler, OrderQueryHandlers>();
 
         // Coupon Services
         services.AddScoped<ICreateCouponHandler, CouponHandlers>();

@@ -60,6 +60,8 @@ public interface IGoodHamburgerClient
     Task<GetOrdersByStatusResponse> GetOrdersByStatusAsync(OrderStatus status, int page = 1, int pageSize = 10);
     Task<UpdateOrderStatusResponse> UpdateOrderStatusAsync(Guid id, UpdateOrderStatusCommand command);
     Task<CancelOrderResponse> CancelOrderAsync(Guid id, string reason);
+    Task<CheckoutCalculationResponse> CalculateCheckoutAsync(CheckoutCalculationQuery query);
+    Task<ViaCepAddressDto?> GetAddressByZipCodeAsync(string zipCode);
 
     // Coupons
     Task<CreateCouponResponse> CreateCouponAsync(CreateCouponCommand command);
@@ -76,6 +78,13 @@ public interface IGoodHamburgerClient
     Task<CreateUserResponse> CreateUserAsync(object command);
     Task<UpdateUserResponse> UpdateUserAsync(string id, object command);
     Task<DeleteUserResponse> DeleteUserAsync(string id);
+
+    // Customer Profiles
+    Task<GetCustomerProfileResponse> GetCustomerProfileAsync(Guid identityId);
+    Task<UpdateCustomerProfileResponse> UpdateCustomerProfileAsync(Guid id, UpdateCustomerProfileCommand command);
+    Task<UpdateCustomerDocumentResponse> UpdateCustomerDocumentAsync(Guid id, UpdateCustomerDocumentCommand command);
+    Task<UpdateCustomerAddressResponse> UpdateCustomerAddressAsync(Guid id, UpdateCustomerAddressCommand command);
+    Task<UpdateCustomerBirthDateResponse> UpdateCustomerBirthDateAsync(Guid id, UpdateCustomerBirthDateCommand command);
     Task<GetAllRolesResponse> GetAllRolesAsync();
     Task<CreateRoleResponse> CreateRoleAsync(object command);
     Task<AssignRoleToUserResponse> AssignRoleToUserAsync(object command);
@@ -195,6 +204,18 @@ public class GoodHamburgerClient : IGoodHamburgerClient
         return await response.Content.ReadFromJsonAsync<UpdateOrderStatusResponse>() ?? throw new InvalidOperationException();
     }
     public Task<CancelOrderResponse> CancelOrderAsync(Guid id, string reason) => PostAsync<CancelOrderResponse>($"api/Orders/{id}/cancel", reason);
+    public Task<CheckoutCalculationResponse> CalculateCheckoutAsync(CheckoutCalculationQuery query) => PostAsync<CheckoutCalculationResponse>("api/Orders/checkout/calculate", query);
+    public async Task<ViaCepAddressDto?> GetAddressByZipCodeAsync(string zipCode)
+    {
+        try
+        {
+            return await GetAsync<ViaCepAddressDto>($"api/Address/via-cep/{zipCode}");
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     // Coupons
     public Task<CreateCouponResponse> CreateCouponAsync(CreateCouponCommand command) => PostAsync<CreateCouponResponse>("api/Coupons", command);
@@ -219,6 +240,29 @@ public class GoodHamburgerClient : IGoodHamburgerClient
     public Task<CreateRoleResponse> CreateRoleAsync(object command) => PostAsync<CreateRoleResponse>("api/Roles", command);
     public Task<AssignRoleToUserResponse> AssignRoleToUserAsync(object command) => PostAsync<AssignRoleToUserResponse>("api/Roles/assign", command);
     public Task<RemoveRoleFromUserResponse> RemoveRoleFromUserAsync(object command) => PostAsync<RemoveRoleFromUserResponse>("api/Roles/remove", command);
+
+    // Customer Profiles
+    public Task<GetCustomerProfileResponse> GetCustomerProfileAsync(Guid identityId) => GetAsync<GetCustomerProfileResponse>($"api/CustomerProfiles/by-identity/{identityId}");
+    public async Task<UpdateCustomerProfileResponse> UpdateCustomerProfileAsync(Guid id, UpdateCustomerProfileCommand command)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/CustomerProfiles/{id}", command);
+        return await response.Content.ReadFromJsonAsync<UpdateCustomerProfileResponse>() ?? throw new InvalidOperationException();
+    }
+    public async Task<UpdateCustomerDocumentResponse> UpdateCustomerDocumentAsync(Guid id, UpdateCustomerDocumentCommand command)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/CustomerProfiles/{id}/document", command);
+        return await response.Content.ReadFromJsonAsync<UpdateCustomerDocumentResponse>() ?? throw new InvalidOperationException();
+    }
+    public async Task<UpdateCustomerAddressResponse> UpdateCustomerAddressAsync(Guid id, UpdateCustomerAddressCommand command)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/CustomerProfiles/{id}/address", command);
+        return await response.Content.ReadFromJsonAsync<UpdateCustomerAddressResponse>() ?? throw new InvalidOperationException();
+    }
+    public async Task<UpdateCustomerBirthDateResponse> UpdateCustomerBirthDateAsync(Guid id, UpdateCustomerBirthDateCommand command)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/CustomerProfiles/{id}/birth-date", command);
+        return await response.Content.ReadFromJsonAsync<UpdateCustomerBirthDateResponse>() ?? throw new InvalidOperationException();
+    }
 }
 
 // --- DTOs ---
@@ -299,7 +343,7 @@ public class MenuItemDto
     public string Description { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public double Price { get; set; }
+    public double? Price { get; set; }
     public string? ImageUrl { get; set; }
     public bool Active { get; set; }
     public bool IsAvailable { get; set; }
@@ -340,10 +384,18 @@ public class Address
     public string Number { get; set; } = string.Empty;
     public string? Complement { get; set; }
     public string ZipCode { get; set; } = string.Empty;
+    public string Neighborhood { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
     public Guid NeighborhoodId { get; set; }
+    public DocumentType DocumentType { get; set; }
+    public string DocumentNumber { get; set; } = string.Empty;
 }
 
-public record OrderItemExtraCommand(Guid IngredientId, string Name, double Price);
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum DocumentType { Cpf, Cnpj, Passport }
+
+public record OrderItemExtraCommand(Guid IngredientId, string Name, double? Price);
 public record OrderItemCommand(Guid MenuItemId, int Quantity, string? Note, IEnumerable<OrderItemExtraCommand>? Extras);
 public class CreateOrderCommand 
 { 
@@ -423,6 +475,60 @@ public record CancelCouponResponse(Guid Id, bool Succeeded, IEnumerable<string>?
 
 public record Error(string Code, string Message);
 
+// --- Checkout Calculate DTOs ---
+public record CheckoutCalculationQuery(
+    IReadOnlyList<CheckoutItemDto> Items,
+    string? CouponCode = null,
+    decimal? DeliveryFee = null
+);
+
+public record CheckoutItemDto(
+    Guid MenuItemId,
+    int Quantity,
+    string? Note = null,
+    IReadOnlyList<CheckoutExtraDto>? Extras = null
+);
+
+public record CheckoutExtraDto(
+    Guid IngredientId,
+    string Name,
+    double? Price
+);
+
+public record CheckoutCalculationResponse(
+    decimal Subtotal,
+    decimal DeliveryFee,
+    decimal DiscountAmount,
+    decimal Total,
+    IReadOnlyList<CheckoutItemResponseDto> Items,
+    DiscountDto? AppliedDiscount
+);
+
+public record CheckoutItemResponseDto(
+    Guid MenuItemId,
+    string ProductName,
+    string Sku,
+    decimal UnitPrice,
+    int Quantity,
+    decimal TotalItemPrice,
+    string? Note,
+    IReadOnlyList<CheckoutExtraDto> Extras
+);
+
+public record DiscountDto(
+    string Name,
+    decimal Amount,
+    string? CouponCode
+);
+
+public record ViaCepAddressDto(
+    string ZipCode,
+    string Street,
+    string Neighborhood,
+    string City,
+    string State
+);
+
 // --- Identity DTOs ---
 public class UserDto
 {
@@ -441,3 +547,105 @@ public record GetAllRolesResponse(IEnumerable<string> Roles);
 public record CreateRoleResponse(string Name, bool Succeeded, IEnumerable<string>? Errors);
 public record AssignRoleToUserResponse(bool Succeeded, IEnumerable<string>? Errors);
 public record RemoveRoleFromUserResponse(bool Succeeded, IEnumerable<string>? Errors);
+
+// --- Customer Profile DTOs ---
+public record GetCustomerProfileResponse(
+    Guid Id,
+    Guid IdentityId,
+    string FullName,
+    string DisplayName,
+    string? ProfilePictureUrl,
+    bool IsActive,
+    DocumentDto Document,
+    AddressDto DeliveryAddress,
+    DateTime? BirthDate,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt
+);
+
+public record DocumentDto(
+    string Number,
+    DocumentType DocumentType
+);
+
+public record AddressDto(
+    Guid StreetTypeId,
+    string StreetName,
+    string Number,
+    Guid NeighborhoodId,
+    string ZipCode,
+    string Complement
+);
+
+public class UpdateCustomerProfileCommand
+{
+    public Guid IdentityId { get; set; }
+    public string? FullName { get; set; }
+    public string? DisplayName { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public bool? IsActive { get; set; }
+}
+
+public class UpdateCustomerProfileResponse
+{
+    public Guid Id { get; set; }
+    public string? FullName { get; set; }
+    public string? DisplayName { get; set; }
+    public bool IsActive { get; set; }
+    public bool Succeeded { get; set; }
+    public IEnumerable<string>? Errors { get; set; }
+}
+
+public class UpdateCustomerDocumentCommand
+{
+    public Guid CustomerProfileId { get; set; }
+    public string DocumentNumber { get; set; } = string.Empty;
+    public DocumentType DocumentType { get; set; }
+}
+
+public class UpdateCustomerDocumentResponse
+{
+    public Guid Id { get; set; }
+    public string? DocumentNumber { get; set; }
+    public DocumentType DocumentType { get; set; }
+    public bool Succeeded { get; set; }
+    public IEnumerable<string>? Errors { get; set; }
+}
+
+public class UpdateCustomerAddressCommand
+{
+    public Guid CustomerProfileId { get; set; }
+    public Guid StreetTypeId { get; set; }
+    public string StreetName { get; set; } = string.Empty;
+    public string Number { get; set; } = string.Empty;
+    public Guid NeighborhoodId { get; set; }
+    public string ZipCode { get; set; } = string.Empty;
+    public string? Complement { get; set; }
+}
+
+public class UpdateCustomerAddressResponse
+{
+    public Guid Id { get; set; }
+    public Guid StreetTypeId { get; set; }
+    public string? StreetName { get; set; }
+    public string? Number { get; set; }
+    public Guid NeighborhoodId { get; set; }
+    public string? ZipCode { get; set; }
+    public string? Complement { get; set; }
+    public bool Succeeded { get; set; }
+    public IEnumerable<string>? Errors { get; set; }
+}
+
+public class UpdateCustomerBirthDateCommand
+{
+    public Guid CustomerProfileId { get; set; }
+    public DateTime? BirthDate { get; set; }
+}
+
+public class UpdateCustomerBirthDateResponse
+{
+    public Guid Id { get; set; }
+    public DateTime? BirthDate { get; set; }
+    public bool Succeeded { get; set; }
+    public IEnumerable<string>? Errors { get; set; }
+}

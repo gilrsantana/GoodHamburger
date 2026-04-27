@@ -31,7 +31,7 @@ public record CreateCustomerProfileResponse(
 );
 
 public record UpdateCustomerProfileCommand(
-    Guid CustomerProfileId,
+    Guid IdentityId,
     string? FullName = null,
     string? DisplayName = null,
     string? ProfilePictureUrl = null,
@@ -48,7 +48,7 @@ public record UpdateCustomerProfileResponse(
 );
 
 public record UpdateCustomerDocumentCommand(
-    Guid CustomerProfileId,
+    Guid IdentityId,
     string DocumentNumber,
     DocumentType DocumentType
 );
@@ -62,7 +62,7 @@ public record UpdateCustomerDocumentResponse(
 );
 
 public record UpdateCustomerAddressCommand(
-    Guid CustomerProfileId,
+    Guid IdentityId,
     Guid StreetTypeId,
     string StreetName,
     string Number,
@@ -84,7 +84,7 @@ public record UpdateCustomerAddressResponse(
 );
 
 public record UpdateCustomerBirthDateCommand(
-    Guid CustomerProfileId,
+    Guid IdentityId,
     DateTime? BirthDate
 );
 

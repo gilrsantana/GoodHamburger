@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -16,10 +17,14 @@
         <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("menu"))" />
         <AuthorizeView>
             <Authorized>
-                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                    <MudMenuItem OnClick="@(() => Navigation.NavigateTo("my-orders"))">Meus Pedidos</MudMenuItem>
-                    <MudMenuItem OnClick="@HandleLogout">Sair</MudMenuItem>
-                </MudMenu>
+                <div class="d-flex align-center mr-2">
+                    <MudText Typo="Typo.body1" Class="mr-2">@context.User.Identity?.Name</MudText>
+                    <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="@(() => Navigation.NavigateTo("my-orders"))">Meus Pedidos</MudMenuItem>
+                        <MudMenuItem OnClick="@OpenEditProfileDialog">Editar Perfil</MudMenuItem>
+                        <MudMenuItem OnClick="@HandleLogout">Sair</MudMenuItem>
+                    </MudMenu>
+                </div>
             </Authorized>
             <NotAuthorized>
                 <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("login"))">Entrar</MudButton>
@@ -68,5 +73,11 @@
     {
         await AuthService.Logout();
         Navigation.NavigateTo("/");
+    }
+
+    private async Task OpenEditProfileDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        await DialogService.ShowAsync<EditProfileDialog>("Editar Perfil", options);
     }
 }

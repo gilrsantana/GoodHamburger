@@ -33,7 +33,7 @@
                 <RowTemplate>
                     <MudTd DataLabel="Nome">@context.Name</MudTd>
                     <MudTd DataLabel="Categoria">@context.CategoryName</MudTd>
-                    <MudTd DataLabel="Preço">@context.Price.ToString("C")</MudTd>
+                    <MudTd DataLabel="Preço">@context.Price?.ToString("C")</MudTd>
                     <MudTd DataLabel="Disponível">
                         <MudSwitch T="bool" Value="@context.IsAvailable" 
                                    ValueChanged="@((val) => ToggleAvailability(context, val))" 

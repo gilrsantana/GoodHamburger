@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using GoodHamburger.Shared.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,8 @@ public abstract class BaseApiController : ControllerBase
         var c when c.EndsWith(".NotFound") => "Not Found",
         var c when c.EndsWith(".Validation") => "Bad Request",
         var c when c.EndsWith("Failed") => "Bad Request",
+        var c when c.EndsWith(".Conflict") => "Conflict",
+        var c when c.EndsWith(".Unauthorized") => "Unauthorized",
         _ => "Server Error"
     };
 
@@ -37,6 +40,17 @@ public abstract class BaseApiController : ControllerBase
         var c when c.EndsWith(".Validation") => StatusCodes.Status400BadRequest,
         var c when c.EndsWith("Failed") => StatusCodes.Status400BadRequest,
         var c when c.EndsWith(".Conflict") => StatusCodes.Status409Conflict,
+        var c when c.EndsWith(".Unauthorized") => StatusCodes.Status401Unauthorized,
         _ => StatusCodes.Status500InternalServerError
     };
+    
+    protected bool UserInValidToPerformAction(Guid id)
+    {
+        var value = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (value == null) 
+            return false;
+        var userId = Guid.Parse(value);
+        return userId != id;
+
+    }
 }

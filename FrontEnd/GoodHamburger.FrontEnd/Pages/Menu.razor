@@ -45,7 +45,7 @@ else
                                         <MudCardContent>
                                             <MudText Typo="Typo.h6">@item.Name</MudText>
                                             <MudText Typo="Typo.body2" Class="mb-2">@item.Description</MudText>
-                                            <MudText Typo="Typo.h5" Color="Color.Primary">@item.Price.ToString("C")</MudText>
+                                            <MudText Typo="Typo.h5" Color="Color.Primary">@item.Price?.ToString("C")</MudText>
                                         </MudCardContent>
                                         <MudSpacer />
                                         <MudCardActions>
@@ -83,6 +83,10 @@ else
                                     <div>
                                         <MudText Typo="Typo.body1">@cartItem.MenuItem.Name</MudText>
                                         <MudText Typo="Typo.caption">@cartItem.MenuItem.CategoryName</MudText>
+                                        @if (cartItem.Quantity > 1)
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Primary">Quantidade: @cartItem.Quantity</MudText>
+                                        }
                                     </div>
                                     <div class="d-flex align-center">
                                         <MudText Typo="Typo.body2" Class="mr-4">@cartItem.TotalPrice.ToString("C")</MudText>
@@ -145,13 +149,6 @@ else
 
     private void AddToCart(MenuItemDto item)
     {
-        // Business Rule: One per Category
-        if (CartState.Value.Items.Any(i => i.MenuItem.CategoryName == item.CategoryName))
-        {
-            Snackbar.Add($"Ops! Você já tem um(a) {item.CategoryName} no carrinho. Só é permitido um de cada categoria.", Severity.Warning);
-            return;
-        }
-
         Dispatcher.Dispatch(new AddItemAction(item));
         Snackbar.Add($"{item.Name} adicionado!", Severity.Success);
     }

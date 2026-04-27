@@ -1,0 +1,202 @@
+@using System.Security.Claims
+@using GoodHamburger.FrontEnd.Clients
+@inject IGoodHamburgerClient ApiClient
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Editar Perfil</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+            <MudTabPanel Text="Conta">
+                <MudForm @ref="_accountForm" @bind-IsValid="@_accountValid">
+                    <MudTextField T="string" Label="Nome Completo" Required="true" @bind-Value="_fullName" Variant="Variant.Outlined" Class="mb-4" />
+                    
+                    <MudTextField T="string" Label="Nome de Exibição" Required="true" @bind-Value="_displayName" Variant="Variant.Outlined" Class="mb-4" />
+                </MudForm>
+                
+                <MudTextField T="string" Label="Email" Disabled="true" @bind-Value="_email" Variant="Variant.Outlined" Class="mb-4" HelperText="Email não pode ser alterado" />
+            </MudTabPanel>
+            
+            <MudTabPanel Text="Documento">
+                <MudForm @ref="_documentForm" @bind-IsValid="@_documentValid">
+                    <MudSelect T="DocumentType" Label="Tipo de Documento" Required="true" @bind-Value="_documentType" Variant="Variant.Outlined" Class="mb-4">
+                        <MudSelectItem T="DocumentType" Value="@DocumentType.Cpf">CPF</MudSelectItem>
+                        <MudSelectItem T="DocumentType" Value="@DocumentType.Cnpj">CNPJ</MudSelectItem>
+                        <MudSelectItem T="DocumentType" Value="@DocumentType.Passport">Passaporte</MudSelectItem>
+                    </MudSelect>
+                    
+                    <MudTextField T="string" Label="Número do Documento" @bind-Value="_documentNumber" Variant="Variant.Outlined" Class="mb-4" />
+                </MudForm>
+            </MudTabPanel>
+            
+            <MudTabPanel Text="Endereço">
+                <MudForm @ref="_addressForm" @bind-IsValid="@_addressValid">
+                    <MudTextField T="string" Label="CEP" Required="true" @bind-Value="_address.ZipCode" Variant="Variant.Outlined" Class="mb-4" />
+                    
+                    <MudTextField T="string" Label="Logradouro" Required="true" @bind-Value="_address.StreetName" Variant="Variant.Outlined" Class="mb-4" />
+                    
+                    <MudGrid>
+                        <MudItem xs="4">
+                            <MudTextField T="string" Label="Número" Required="true" @bind-Value="_address.Number" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="8">
+                            <MudTextField T="string" Label="Complemento" @bind-Value="_address.Complement" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                </MudForm>
+            </MudTabPanel>
+        </MudTabs>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@_processing">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Class="ms-n1" Indeterminate="true" />
+                <MudText Class="ms-2">Salvando...</MudText>
+            }
+            else
+            {
+                <MudText>Salvar</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private MudForm _accountForm = null!;
+    private MudForm _documentForm = null!;
+    private MudForm _addressForm = null!;
+    private bool _accountValid;
+    private bool _documentValid;
+    private bool _addressValid;
+    private bool _processing;
+    
+    private string _fullName = string.Empty;
+    private string _displayName = string.Empty;
+    private string _email = string.Empty;
+    private DocumentType _documentType = DocumentType.Cpf;
+    private string _documentNumber = string.Empty;
+    private Address _address = new Address();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserData();
+    }
+
+    private async Task LoadUserData()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            _fullName = user.Identity?.Name ?? string.Empty;
+            _displayName = user.FindFirst("DisplayName")?.Value ?? user.Identity?.Name ?? string.Empty;
+            _email = user.FindFirst("email")?.Value ?? user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+            
+            // Try to get actual profile data from API
+            var userIdClaim = user.FindFirst("userId") ?? user.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var identityId))
+            {
+                var response = await ApiClient.GetCustomerProfileAsync(identityId); // API should resolve by identity
+                if (response != null)
+                {
+                    _fullName = response.FullName;
+                    _displayName = response.DisplayName;
+                    _documentType = response.Document.DocumentType;
+                    _documentNumber = response.Document.Number;
+
+                    _address.StreetTypeId = response.DeliveryAddress.StreetTypeId;
+                    _address.StreetName = response.DeliveryAddress.StreetName;
+                    _address.Number = response.DeliveryAddress.Number;
+                    _address.Complement = response.DeliveryAddress.Complement;
+                    _address.ZipCode = response.DeliveryAddress.ZipCode;
+                    _address.NeighborhoodId = response.DeliveryAddress.NeighborhoodId;
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Erro ao carregar dados do perfil.", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        _processing = true;
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userIdClaim = authState.User.FindFirst("userId") ?? authState.User.FindFirst(ClaimTypes.NameIdentifier);
+            
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var identityId))
+            {
+                Snackbar.Add("Erro ao identificar usuário.", Severity.Error);
+                return;
+            }
+
+            // Update profile
+            var profileCommand = new UpdateCustomerProfileCommand 
+            { 
+                IdentityId = identityId, 
+                FullName = _fullName, 
+                DisplayName = _displayName 
+            };
+            var profileResult = await ApiClient.UpdateCustomerProfileAsync(identityId, profileCommand);
+            
+            if (!profileResult.Succeeded)
+            {
+                Snackbar.Add($"Erro ao atualizar perfil: {string.Join(", ", profileResult.Errors ?? [])}", Severity.Error);
+                return;
+            }
+
+            // Update document
+            var documentCommand = new UpdateCustomerDocumentCommand 
+            { 
+                CustomerProfileId = identityId, 
+                DocumentNumber = _documentNumber, 
+                DocumentType = _documentType 
+            };
+            var documentResult = await ApiClient.UpdateCustomerDocumentAsync(identityId, documentCommand);
+            if (!documentResult.Succeeded)
+            {
+                Snackbar.Add($"Erro ao atualizar documento: {string.Join(", ", profileResult.Errors ?? [])}", Severity.Error);
+                return;
+            }
+            // Update address
+            var addressCommand = new UpdateCustomerAddressCommand
+            {
+                CustomerProfileId = identityId,
+                StreetName = _address.StreetName,
+                Number = _address.Number,
+                Complement = _address.Complement ?? string.Empty,
+                ZipCode = _address.ZipCode,
+                StreetTypeId = _address.StreetTypeId,
+                NeighborhoodId = _address.NeighborhoodId
+            };
+            var addressResult = await ApiClient.UpdateCustomerAddressAsync(identityId, addressCommand);
+            if (!addressResult.Succeeded)
+            {
+                Snackbar.Add($"Erro ao atualizar Endereço: {string.Join(", ", profileResult.Errors ?? [])}", Severity.Error);
+                return;
+            }
+            Snackbar.Add("Perfil atualizado com sucesso!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao atualizar perfil: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

@@ -160,10 +160,10 @@ public class UpdateCustomerProfileHandler : IUpdateCustomerProfileHandler
     {
         try
         {
-            var customerProfile = await _customerProfileRepository.GetByIdAsync(command.CustomerProfileId, cancellationToken);
+            var customerProfile = await _customerProfileRepository.GetByIdentityIdAsync(command.IdentityId, cancellationToken);
             if (customerProfile == null)
             {
-                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.CustomerProfileId);
+                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.IdentityId);
                 return Result<UpdateCustomerProfileResponse>.Failure(
                     new Error("CustomerProfile.NotFound", "Customer profile not found.")
                 );
@@ -192,7 +192,7 @@ public class UpdateCustomerProfileHandler : IUpdateCustomerProfileHandler
 
             await _customerProfileRepository.UpdateAsync(customerProfile, cancellationToken);
 
-            _logger.LogInformation("Customer profile {CustomerProfileId} updated", command.CustomerProfileId);
+            _logger.LogInformation("Customer profile {CustomerProfileId} updated", command.IdentityId);
 
             return Result<UpdateCustomerProfileResponse>.Success(new UpdateCustomerProfileResponse(
                 customerProfile.Id,
@@ -230,10 +230,10 @@ public class UpdateCustomerDocumentHandler : IUpdateCustomerDocumentHandler
     {
         try
         {
-            var customerProfile = await _customerProfileRepository.GetByIdAsync(command.CustomerProfileId, cancellationToken);
+            var customerProfile = await _customerProfileRepository.GetByIdentityIdAsync(command.IdentityId, cancellationToken);
             if (customerProfile == null)
             {
-                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.CustomerProfileId);
+                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.IdentityId);
                 return Result<UpdateCustomerDocumentResponse>.Failure(
                     new Error("CustomerProfile.NotFound", "Customer profile not found.")
                 );
@@ -241,7 +241,7 @@ public class UpdateCustomerDocumentHandler : IUpdateCustomerDocumentHandler
 
             // Check if document is already in use by another customer
             var existingByDocument = await _customerProfileRepository.GetByDocumentAsync(command.DocumentNumber, cancellationToken);
-            if (existingByDocument != null && existingByDocument.Id != command.CustomerProfileId)
+            if (existingByDocument != null && existingByDocument.Id != customerProfile.Id)
             {
                 _logger.LogWarning("Document {DocumentNumber} already registered to another customer", command.DocumentNumber);
                 return Result<UpdateCustomerDocumentResponse>.Failure(
@@ -263,7 +263,7 @@ public class UpdateCustomerDocumentHandler : IUpdateCustomerDocumentHandler
 
             await _customerProfileRepository.UpdateAsync(customerProfile, cancellationToken);
 
-            _logger.LogInformation("Customer profile {CustomerProfileId} document updated", command.CustomerProfileId);
+            _logger.LogInformation("Customer profile {CustomerProfileId} document updated", command.IdentityId);
 
             return Result<UpdateCustomerDocumentResponse>.Success(new UpdateCustomerDocumentResponse(
                 customerProfile.Id,
@@ -300,10 +300,10 @@ public class UpdateCustomerAddressHandler : IUpdateCustomerAddressHandler
     {
         try
         {
-            var customerProfile = await _customerProfileRepository.GetByIdAsync(command.CustomerProfileId, cancellationToken);
+            var customerProfile = await _customerProfileRepository.GetByIdentityIdAsync(command.IdentityId, cancellationToken);
             if (customerProfile == null)
             {
-                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.CustomerProfileId);
+                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.IdentityId);
                 return Result<UpdateCustomerAddressResponse>.Failure(
                     new Error("CustomerProfile.NotFound", "Customer profile not found.")
                 );
@@ -331,7 +331,7 @@ public class UpdateCustomerAddressHandler : IUpdateCustomerAddressHandler
 
             await _customerProfileRepository.UpdateAsync(customerProfile, cancellationToken);
 
-            _logger.LogInformation("Customer profile {CustomerProfileId} address updated", command.CustomerProfileId);
+            _logger.LogInformation("Customer profile {CustomerProfileId} address updated", command.IdentityId);
 
             return Result<UpdateCustomerAddressResponse>.Success(new UpdateCustomerAddressResponse(
                 customerProfile.Id,
@@ -372,10 +372,10 @@ public class UpdateCustomerBirthDateHandler : IUpdateCustomerBirthDateHandler
     {
         try
         {
-            var customerProfile = await _customerProfileRepository.GetByIdAsync(command.CustomerProfileId, cancellationToken);
+            var customerProfile = await _customerProfileRepository.GetByIdAsync(command.IdentityId, cancellationToken);
             if (customerProfile == null)
             {
-                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.CustomerProfileId);
+                _logger.LogWarning("Customer profile {CustomerProfileId} not found", command.IdentityId);
                 return Result<UpdateCustomerBirthDateResponse>.Failure(
                     new Error("CustomerProfile.NotFound", "Customer profile not found.")
                 );
@@ -394,7 +394,7 @@ public class UpdateCustomerBirthDateHandler : IUpdateCustomerBirthDateHandler
 
             await _customerProfileRepository.UpdateAsync(customerProfile, cancellationToken);
 
-            _logger.LogInformation("Customer profile {CustomerProfileId} birth date updated", command.CustomerProfileId);
+            _logger.LogInformation("Customer profile {CustomerProfileId} birth date updated", command.IdentityId);
 
             return Result<UpdateCustomerBirthDateResponse>.Success(new UpdateCustomerBirthDateResponse(
                 customerProfile.Id,

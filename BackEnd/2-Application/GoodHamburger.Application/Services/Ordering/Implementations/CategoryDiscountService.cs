@@ -94,6 +94,38 @@ public class CategoryDiscountService : IOrderDiscountService
         var categoriesText = string.Join(" + ", categoryNames);
         return $"Combo Discount ({categoriesText}) - {discountPercentage:P0}";
     }
+
+    public (decimal? discountAmount, string? discountName) CalculateBestDiscountForCheckout(
+        IReadOnlyList<(MenuCategoryType? categoryType, int quantity)> items, 
+        decimal subtotal)
+    {
+        if (items.Count == 0)
+            return (null, null);
+
+        var categoriesInOrder = GetCategoriesInCheckoutItems(items);
+        var bestDiscount = FindBestMatchingDiscount(categoriesInOrder);
+
+        if (bestDiscount == null)
+            return (null, null);
+
+        var discountAmount = subtotal * bestDiscount.Value;
+        var discountName = GetDiscountName(categoriesInOrder, bestDiscount.Value);
+
+        return (discountAmount, discountName);
+    }
+
+    private HashSet<MenuCategoryType> GetCategoriesInCheckoutItems(IReadOnlyList<(MenuCategoryType? categoryType, int quantity)> items)
+    {
+        var categories = new HashSet<MenuCategoryType>();
+        
+        foreach (var item in items)
+        {
+            if (item.categoryType.HasValue)
+                categories.Add(item.categoryType.Value);
+        }
+        
+        return categories;
+    }
 }
 
 
