@@ -1,0 +1,134 @@
+@page "/register"
+@using GoodHamburger.FrontEnd.Clients.Identity
+@inject IIdentityClient IdentityClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Cadastro - Good Hamburger</PageTitle>
+
+<div class="d-flex justify-center align-center mt-10">
+    <MudPaper Elevation="4" Class="pa-8" Style="width: 400px;">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">Criar Conta</MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6">Cadastre-se para fazer pedidos</MudText>
+
+        <MudForm @ref="_form" @bind-IsValid="@_success">
+            <MudTextField T="string" Label="Nome Completo" Required="true" 
+                          @bind-Value="_fullName" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Nome de Usuário" Required="true" 
+                          @bind-Value="_userName" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="E-mail" Required="true" 
+                          @bind-Value="_email" 
+                          InputType="InputType.Email"
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Senha" Required="true" 
+                          @bind-Value="_password" 
+                          InputType="InputType.Password" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Confirmar Senha" Required="true" 
+                          @bind-Value="_confirmPassword" 
+                          InputType="InputType.Password" 
+                          Variant="Variant.Outlined" Class="mb-6" />
+
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true" 
+                       Size="Size.Large"
+                       Disabled="@(!_success || _loading)"
+                       OnClick="HandleRegister">
+                @if (_loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Criando conta...</MudText>
+                }
+                else
+                {
+                    <MudText>Criar Conta</MudText>
+                }
+            </MudButton>
+        </MudForm>
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            Já tem uma conta? <MudLink Href="/login">Faça login</MudLink>
+        </MudText>
+    </MudPaper>
+</div>
+
+@code {
+    private MudForm _form = null!;
+    private bool _success;
+    private bool _loading;
+    private string _fullName = string.Empty;
+    private string _userName = string.Empty;
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private string _confirmPassword = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        if (_password != _confirmPassword)
+        {
+            Snackbar.Add("As senhas não coincidem.", Severity.Error);
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var createUserCommand = new
+            {
+                Email = _email,
+                UserName = _userName,
+                Password = _password,
+                FirstName = _fullName
+            };
+
+            var response = await IdentityClient.CreateUserAsync(createUserCommand);
+
+            if (response.Succeeded)
+            {
+                // Assign User role to the new user
+                var assignRoleCommand = new
+                {
+                    UserId = response.Id,
+                    RoleName = "User"
+                };
+
+                var roleResponse = await IdentityClient.AssignRoleToUserAsync(assignRoleCommand);
+
+                if (roleResponse.Succeeded)
+                {
+                    Snackbar.Add("Conta criada com sucesso! Faça login para continuar.", Severity.Success);
+                    Navigation.NavigateTo("/login");
+                }
+                else
+                {
+                    Snackbar.Add("Conta criada, mas houve erro ao atribuir a role User. Entre em contato com o suporte.", Severity.Warning);
+                    Navigation.NavigateTo("/login");
+                }
+            }
+            else
+            {
+                foreach (var error in response.Errors ?? new[] { "Falha ao criar conta." })
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Ocorreu um erro ao tentar criar a conta.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -29,8 +29,9 @@ public class CreateUserHandler : ICreateUserHandler
             {
                 UserName = command.UserName,
                 Email = command.Email,
-                EmailConfirmed = false,
-                PhoneNumber = command.PhoneNumber
+                EmailConfirmed = true,
+                PhoneNumber = command.PhoneNumber,
+                PhoneNumberConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, command.Password);

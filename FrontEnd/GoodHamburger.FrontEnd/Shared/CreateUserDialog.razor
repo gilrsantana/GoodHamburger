@@ -1,0 +1,189 @@
+@using GoodHamburger.FrontEnd.Clients.Identity
+@using GoodHamburger.FrontEnd.Clients.EmployeeProfiles
+@using System.Security.Claims
+@inject IIdentityClient IdentityClient
+@inject IEmployeeProfilesClient EmployeeProfilesClient
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_success">
+            <MudTextField T="string" Label="Nome Completo" Required="true" 
+                          @bind-Value="_fullName" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Nome de Usuário" Required="true" 
+                          @bind-Value="_userName" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="E-mail" Required="true" 
+                          @bind-Value="_email" 
+                          InputType="InputType.Email"
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Senha" Required="true" 
+                          @bind-Value="_password" 
+                          InputType="InputType.Password" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Confirmar Senha" Required="true" 
+                          @bind-Value="_confirmPassword" 
+                          InputType="InputType.Password" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Nome de Exibição" Required="true" 
+                          @bind-Value="_displayName" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudTextField T="string" Label="Código do Funcionário" Required="true" 
+                          @bind-Value="_employeeCode" 
+                          Variant="Variant.Outlined" Class="mb-4" />
+
+            <MudSelect T="string" Label="Cargo" Required="true" 
+                       @bind-Value="_selectedRole" 
+                       Variant="Variant.Outlined" Class="mb-4">
+                @foreach (var role in _availableRoles)
+                {
+                    <MudSelectItem Value="@role">@role</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!_success || _loading)" OnClick="Submit">
+            @if (_loading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Criando...</MudText>
+            }
+            else
+            {
+                <MudText>Criar Usuário</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private MudForm _form = null!;
+    private bool _success;
+    private bool _loading;
+    private string _fullName = string.Empty;
+    private string _userName = string.Empty;
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private string _confirmPassword = string.Empty;
+    private string _displayName = string.Empty;
+    private string _employeeCode = string.Empty;
+    private string _selectedRole = string.Empty;
+    private List<string> _availableRoles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+            
+            if (roles.Contains("Admin"))
+            {
+                _availableRoles = ["Admin", "Manager", "Employee"];
+            }
+            else if (roles.Contains("Manager"))
+            {
+                _availableRoles = ["Manager", "Employee"];
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (_password != _confirmPassword)
+        {
+            Snackbar.Add("As senhas não coincidem.", Severity.Error);
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            // Create user
+            var createUserCommand = new
+            {
+                Email = _email,
+                UserName = _userName,
+                Password = _password,
+                FirstName = _fullName
+            };
+
+            var userResponse = await IdentityClient.CreateUserAsync(createUserCommand);
+
+            if (!userResponse.Succeeded)
+            {
+                foreach (var error in userResponse.Errors ?? new[] { "Falha ao criar usuário." })
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+                return;
+            }
+
+            // Assign role
+            var assignRoleCommand = new
+            {
+                UserId = userResponse.Id.ToString(),
+                RoleName = _selectedRole
+            };
+
+            var roleResponse = await IdentityClient.AssignRoleToUserAsync(assignRoleCommand);
+
+            if (!roleResponse.Succeeded)
+            {
+                foreach (var error in roleResponse.Errors ?? new[] { "Falha ao atribuir role." })
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+                return;
+            }
+
+            // Create employee profile
+            var employeeProfileCommand = new CreateEmployeeProfileCommand
+            {
+                IdentityId = userResponse.Id,
+                FullName = _fullName,
+                DisplayName = _displayName,
+                EmployeeCode = _employeeCode,
+                RoleTitle = _selectedRole
+            };
+
+            var profileResponse = await EmployeeProfilesClient.CreateEmployeeProfileAsync(employeeProfileCommand);
+
+            if (profileResponse.Succeeded)
+            {
+                Snackbar.Add("Usuário criado com sucesso!", Severity.Success);
+                MudDialog.Close(true);
+            }
+            else
+            {
+                foreach (var error in profileResponse.Errors ?? new[] { "Falha ao criar perfil de funcionário." })
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ocorreu um erro: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

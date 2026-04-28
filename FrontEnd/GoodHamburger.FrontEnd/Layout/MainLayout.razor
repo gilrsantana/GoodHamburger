@@ -49,6 +49,7 @@
             <AuthorizeView Roles="Admin,Manager">
                 <MudText Typo="Typo.subtitle2" Color="Color.Tertiary" Class="ml-4 mt-6">Identidade</MudText>
                 <MudNavLink Href="/admin/identity" Icon="@Icons.Material.Filled.AdminPanelSettings">Gerenciar Usuários</MudNavLink>
+                <MudNavLink OnClick="OpenCreateUserDialog" Icon="@Icons.Material.Filled.PersonAdd">Criar Novo Usuário</MudNavLink>
             </AuthorizeView>
         </MudNavMenu>
     </MudDrawer>
@@ -79,5 +80,17 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
         await DialogService.ShowAsync<EditProfileDialog>("Editar Perfil", options);
+    }
+
+    private async Task OpenCreateUserDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Criar Novo Usuário", options);
+        var result = await dialog.Result;
+        
+        if (result is { Canceled: false, Data: true })
+        {
+            // User was created successfully, could refresh user list if needed
+        }
     }
 }

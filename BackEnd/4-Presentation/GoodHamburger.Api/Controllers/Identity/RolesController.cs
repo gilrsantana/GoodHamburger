@@ -54,6 +54,7 @@ public class RolesController : BaseApiController
     }
 
     [HttpPost("assign")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(AssignRoleToUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]

@@ -92,8 +92,10 @@
     private bool _loadingUsers = true;
     private bool _loadingRoles = true;
     private List<UserDto> _users = new();
+    private GetAllRolesResponse? _returnedRoles;
+    
     private List<string> _roles = new();
-
+    
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
@@ -124,7 +126,8 @@
         try
         {
             var response = await IdentityClient.GetAllRolesAsync();
-            _roles = response.Roles?.ToList() ?? new();
+            _returnedRoles = response;
+            _roles = _returnedRoles.Roles?.Select(r => r.Name).ToList() ?? new();
         }
         catch
         {

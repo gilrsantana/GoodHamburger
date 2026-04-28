@@ -9,6 +9,7 @@ using GoodHamburger.FrontEnd.Clients.Orders;
 using GoodHamburger.FrontEnd.Clients.Coupons;
 using GoodHamburger.FrontEnd.Clients.Identity;
 using GoodHamburger.FrontEnd.Clients.CustomerProfiles;
+using GoodHamburger.FrontEnd.Clients.EmployeeProfiles;
 using GoodHamburger.FrontEnd.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -51,6 +52,8 @@ public static class ServiceCollectionExtensions
             .AddHttpMessageHandler<GlobalHttpHandler>();
         services.AddHttpClient<CustomerProfilesClient>(client => client.BaseAddress = new Uri(apiBaseUrl))
             .AddHttpMessageHandler<GlobalHttpHandler>();
+        services.AddHttpClient<EmployeeProfilesClient>(client => client.BaseAddress = new Uri(apiBaseUrl))
+            .AddHttpMessageHandler<GlobalHttpHandler>();
 
         services.AddScoped<IAuthClient>(sp => sp.GetRequiredService<AuthClient>());
         services.AddScoped<ICategoriesClient>(sp => sp.GetRequiredService<CategoriesClient>());
@@ -60,6 +63,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICouponsClient>(sp => sp.GetRequiredService<CouponsClient>());
         services.AddScoped<IIdentityClient>(sp => sp.GetRequiredService<IdentityClient>());
         services.AddScoped<ICustomerProfilesClient>(sp => sp.GetRequiredService<CustomerProfilesClient>());
+        services.AddScoped<IEmployeeProfilesClient>(sp => sp.GetRequiredService<EmployeeProfilesClient>());
 
         return services;
     }
