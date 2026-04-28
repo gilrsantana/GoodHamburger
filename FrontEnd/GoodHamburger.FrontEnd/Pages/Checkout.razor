@@ -1,10 +1,11 @@
 @page "/checkout"
+@using GoodHamburger.FrontEnd.Clients.Orders
 @using GoodHamburger.FrontEnd.Store.CartUseCase
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IState<CartState> CartState
 @inject IDispatcher Dispatcher
-@inject IGoodHamburgerClient ApiClient
+@inject IOrdersClient OrdersClient
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
@@ -146,7 +147,7 @@ else
             )).ToList();
 
             var query = new CheckoutCalculationQuery(items, _couponCode, 0);
-            var response = await ApiClient.CalculateCheckoutAsync(query);
+            var response = await OrdersClient.CalculateCheckoutAsync(query);
             _calculation = response;
         }
         catch
@@ -195,7 +196,7 @@ else
                 _couponCode
             );
 
-            var response = await ApiClient.CreateOrderAsync(command);
+            var response = await OrdersClient.CreateOrderAsync(command);
 
             if (response.Succeeded)
             {

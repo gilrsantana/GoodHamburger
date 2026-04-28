@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using GoodHamburger.FrontEnd.Clients;
+using GoodHamburger.FrontEnd.Clients.Auth;
 using Microsoft.JSInterop;
 using MudBlazor;
 

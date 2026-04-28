@@ -1,7 +1,8 @@
 @page "/admin/orders"
+@using GoodHamburger.FrontEnd.Clients.Orders
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin,Manager,Employee")]
-@inject IGoodHamburgerClient ApiClient
+@inject IOrdersClient OrdersClient
 @inject ISnackbar Snackbar
 
 <PageTitle>Monitor de Pedidos - Good Hamburger</PageTitle>
@@ -76,7 +77,7 @@ else
         _loading = true;
         try
         {
-            var response = await ApiClient.GetAllOrdersAsync(1, 100);
+            var response = await OrdersClient.GetAllOrdersAsync(1, 100);
             _orders = response.Items.ToList();
         }
         catch
@@ -101,7 +102,7 @@ else
 
         try
         {
-            var response = await ApiClient.UpdateOrderStatusAsync(order.Id, new UpdateOrderStatusCommand(order.Id, nextStatus, null));
+            var response = await OrdersClient.UpdateOrderStatusAsync(order.Id, new UpdateOrderStatusCommand(order.Id, nextStatus, null));
             if (response.Succeeded)
             {
                 Snackbar.Add($"Pedido #{order.Id.ToString().Substring(0, 8)} atualizado para {nextStatus}.", Severity.Info);

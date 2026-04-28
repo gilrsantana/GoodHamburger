@@ -1,4 +1,5 @@
-@inject IGoodHamburgerClient ApiClient
+@using GoodHamburger.FrontEnd.Clients.Categories
+@inject ICategoriesClient CategoriesClient
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -62,7 +63,7 @@
         _processing = true;
         try
         {
-            var response = await ApiClient.UpdateCategoryAsync(Category.Id, _command);
+            var response = await CategoriesClient.UpdateCategoryAsync(Category.Id, _command);
             if (response.Succeeded)
             {
                 Snackbar.Add("Categoria atualizada com sucesso!", Severity.Success);

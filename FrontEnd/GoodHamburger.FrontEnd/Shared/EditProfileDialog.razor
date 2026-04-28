@@ -1,6 +1,8 @@
 @using System.Security.Claims
-@using GoodHamburger.FrontEnd.Clients
-@inject IGoodHamburgerClient ApiClient
+@using GoodHamburger.FrontEnd.Clients.CustomerProfiles
+@using GoodHamburger.FrontEnd.Clients.Orders
+@using DocumentType = GoodHamburger.FrontEnd.Clients.CustomerProfiles.DocumentType
+@inject ICustomerProfilesClient CustomerProfilesClient
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -103,7 +105,7 @@
             var userIdClaim = user.FindFirst("userId") ?? user.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var identityId))
             {
-                var response = await ApiClient.GetCustomerProfileAsync(identityId); // API should resolve by identity
+                var response = await CustomerProfilesClient.GetCustomerProfileAsync(identityId); // API should resolve by identity
                 if (response != null)
                 {
                     _fullName = response.FullName;
@@ -149,7 +151,7 @@
                 FullName = _fullName, 
                 DisplayName = _displayName 
             };
-            var profileResult = await ApiClient.UpdateCustomerProfileAsync(identityId, profileCommand);
+            var profileResult = await CustomerProfilesClient.UpdateCustomerProfileAsync(identityId, profileCommand);
             
             if (!profileResult.Succeeded)
             {
@@ -164,7 +166,7 @@
                 DocumentNumber = _documentNumber, 
                 DocumentType = _documentType 
             };
-            var documentResult = await ApiClient.UpdateCustomerDocumentAsync(identityId, documentCommand);
+            var documentResult = await CustomerProfilesClient.UpdateCustomerDocumentAsync(identityId, documentCommand);
             if (!documentResult.Succeeded)
             {
                 Snackbar.Add($"Erro ao atualizar documento: {string.Join(", ", profileResult.Errors ?? [])}", Severity.Error);
@@ -181,7 +183,7 @@
                 StreetTypeId = _address.StreetTypeId,
                 NeighborhoodId = _address.NeighborhoodId
             };
-            var addressResult = await ApiClient.UpdateCustomerAddressAsync(identityId, addressCommand);
+            var addressResult = await CustomerProfilesClient.UpdateCustomerAddressAsync(identityId, addressCommand);
             if (!addressResult.Succeeded)
             {
                 Snackbar.Add($"Erro ao atualizar Endereço: {string.Join(", ", profileResult.Errors ?? [])}", Severity.Error);

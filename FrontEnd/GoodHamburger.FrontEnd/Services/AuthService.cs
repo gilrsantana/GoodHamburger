@@ -1,4 +1,4 @@
-using GoodHamburger.FrontEnd.Clients;
+using GoodHamburger.FrontEnd.Clients.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace GoodHamburger.FrontEnd.Services;
@@ -12,10 +12,10 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
-    private readonly IGoodHamburgerClient _client;
+    private readonly IAuthClient _client;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthService(IGoodHamburgerClient client, 
+    public AuthService(IAuthClient client, 
                        AuthenticationStateProvider authenticationStateProvider)
     {
         _client = client;

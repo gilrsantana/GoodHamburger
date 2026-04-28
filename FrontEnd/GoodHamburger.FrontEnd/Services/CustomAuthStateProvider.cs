@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Text.Json;
-using GoodHamburger.FrontEnd.Clients;
+using GoodHamburger.FrontEnd.Clients.Auth;
 using Microsoft.JSInterop;
 
 namespace GoodHamburger.FrontEnd.Services;

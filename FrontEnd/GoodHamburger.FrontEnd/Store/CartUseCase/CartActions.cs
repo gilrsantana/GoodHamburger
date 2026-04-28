@@ -1,4 +1,4 @@
-using GoodHamburger.FrontEnd.Clients;
+using GoodHamburger.FrontEnd.Clients.MenuItems;
 
 namespace GoodHamburger.FrontEnd.Store.CartUseCase;
 

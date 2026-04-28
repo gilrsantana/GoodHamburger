@@ -1,5 +1,11 @@
-@inject IGoodHamburgerClient ApiClient
+@using GoodHamburger.FrontEnd.Clients.Categories
+@using GoodHamburger.FrontEnd.Clients.Ingredients
+@using GoodHamburger.FrontEnd.Clients.MenuItems
 @inject ISnackbar Snackbar
+
+@inject ICategoriesClient CategoriesClient
+@inject IMenuItemsClient MenuItemsClient
+@inject IIngredientsClient IngredientsClient
 
 <MudDialog>
     <TitleContent>
@@ -111,7 +117,7 @@
     {
         try
         {
-            var response = await ApiClient.GetActiveCategoriesAsync(1, 100);
+            var response = await CategoriesClient.GetActiveCategoriesAsync(1, 100);
             _categories = response.Items.ToList();
         }
         catch
@@ -128,7 +134,7 @@
     {
         try
         {
-            var response = await ApiClient.GetAllIngredientsAsync(1, 100);
+            var response = await IngredientsClient.GetAllIngredientsAsync(1, 100);
             _ingredients = response.Items.Select(i => new IngredientSelection
             {
                 Id = i.Id,
@@ -154,7 +160,7 @@
         _processing = true;
         try
         {
-            var response = await ApiClient.UpdateMenuItemAsync(MenuItem.Id, _command);
+            var response = await MenuItemsClient.UpdateMenuItemAsync(MenuItem.Id, _command);
             if (response.Succeeded)
             {
                 // Update ingredients - remove all and re-add selected ones

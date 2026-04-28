@@ -1,6 +1,9 @@
 @page "/menu"
+@using GoodHamburger.FrontEnd.Clients.Categories
+@using GoodHamburger.FrontEnd.Clients.MenuItems
 @using GoodHamburger.FrontEnd.Store.CartUseCase
-@inject IGoodHamburgerClient ApiClient
+@inject ICategoriesClient CategoriesClient
+@inject IMenuItemsClient MenuItemsClient
 @inject ISnackbar Snackbar
 @inject IState<CartState> CartState
 @inject IDispatcher Dispatcher
@@ -131,8 +134,8 @@ else
         try
         {
             _loading = true;
-            var categoriesResponse = await ApiClient.GetActiveCategoriesAsync(1, 100);
-            var itemsResponse = await ApiClient.GetAvailableMenuItemsAsync(1, 100);
+            var categoriesResponse = await CategoriesClient.GetActiveCategoriesAsync(1, 100);
+            var itemsResponse = await MenuItemsClient.GetAvailableMenuItemsAsync(1, 100);
 
             _categories = categoriesResponse.Items.ToList();
             _menuItems = itemsResponse.Items.ToList();

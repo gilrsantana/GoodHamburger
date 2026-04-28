@@ -1,4 +1,6 @@
-@inject IGoodHamburgerClient ApiClient
+@using GoodHamburger.FrontEnd.Clients.Categories
+@using GoodHamburger.FrontEnd.Clients.MenuItems
+@inject ICategoriesClient CategoriesClient
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -54,7 +56,7 @@
         _processing = true;
         try
         {
-            var response = await ApiClient.CreateCategoryAsync(_command);
+            var response = await CategoriesClient.CreateCategoryAsync(_command);
             if (response.Succeeded)
             {
                 Snackbar.Add("Categoria criada com sucesso!", Severity.Success);

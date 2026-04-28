@@ -1,4 +1,9 @@
-@inject IGoodHamburgerClient ApiClient
+@using GoodHamburger.FrontEnd.Clients.Categories
+@using GoodHamburger.FrontEnd.Clients.Ingredients
+@using GoodHamburger.FrontEnd.Clients.MenuItems
+@inject ICategoriesClient CategoriesClient
+@inject IMenuItemsClient MenuItemsClient
+@inject IIngredientsClient IngredientsClient
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -97,7 +102,7 @@
     {
         try
         {
-            var response = await ApiClient.GetActiveCategoriesAsync(1, 100);
+            var response = await CategoriesClient.GetActiveCategoriesAsync(1, 100);
             _categories = response.Items.ToList();
         }
         catch
@@ -114,7 +119,7 @@
     {
         try
         {
-            var response = await ApiClient.GetAllIngredientsAsync(1, 100);
+            var response = await IngredientsClient.GetAllIngredientsAsync(1, 100);
             _ingredients = response.Items.Select(i => new IngredientSelection
             {
                 Id = i.Id,
@@ -140,14 +145,14 @@
         _processing = true;
         try
         {
-            var response = await ApiClient.CreateMenuItemAsync(_command);
+            var response = await MenuItemsClient.CreateMenuItemAsync(_command);
             if (response.Succeeded)
             {
                 // Add selected ingredients to the menu item
                 var selectedIngredients = _ingredients.Where(i => i.Selected).ToList();
                 foreach (var ingredient in selectedIngredients)
                 {
-                    var addResponse = await ApiClient.AddIngredientToMenuItemAsync(response.Id, ingredient.Id, ingredient.IsRemovable);
+                    var addResponse = await MenuItemsClient.AddIngredientToMenuItemAsync(response.Id, ingredient.Id, ingredient.IsRemovable);
                     if (!addResponse.Succeeded)
                     {
                         Snackbar.Add($"Erro ao adicionar ingrediente {ingredient.Name}: {string.Join(", ", addResponse.Errors ?? new[] { "Erro desconhecido" })}", Severity.Warning);

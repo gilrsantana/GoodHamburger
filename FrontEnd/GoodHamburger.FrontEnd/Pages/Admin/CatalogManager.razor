@@ -1,7 +1,11 @@
 @page "/admin/catalog"
+@using GoodHamburger.FrontEnd.Clients.Ingredients
+@using GoodHamburger.FrontEnd.Clients.MenuItems
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin,Manager")]
-@inject IGoodHamburgerClient ApiClient
+@inject IIngredientsClient IngredientsClient
+@inject IMenuItemsClient MenuItemsClient
+
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -97,8 +101,8 @@
         _loadingIngredients = true;
         try
         {
-            var itemsTask = ApiClient.GetActiveMenuItemsAsync(1, 100);
-            var ingredientsTask = ApiClient.GetAllIngredientsAsync(1, 100);
+            var itemsTask = MenuItemsClient.GetActiveMenuItemsAsync(1, 100);
+            var ingredientsTask = IngredientsClient.GetAllIngredientsAsync(1, 100);
 
             await Task.WhenAll(itemsTask, ingredientsTask);
 
@@ -120,7 +124,7 @@
     {
         try
         {
-            var response = await ApiClient.SetMenuItemAvailabilityAsync(item.Id, val);
+            var response = await MenuItemsClient.SetMenuItemAvailabilityAsync(item.Id, val);
             if (response.Succeeded)
             {
                 Snackbar.Add($"{item.Name} atualizado.", Severity.Info);
@@ -141,7 +145,7 @@
     {
         try
         {
-            var response = await ApiClient.DeleteMenuItemAsync(id);
+            var response = await MenuItemsClient.DeleteMenuItemAsync(id);
             if (response.Succeeded)
             {
                 Snackbar.Add("Item removido.", Severity.Warning);
@@ -164,7 +168,7 @@
         var dialog = await DialogService.ShowAsync<CreateMenuItemDialog>("Novo Item", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is bool success && success)
+        if (result is { Canceled: false, Data: true })
         {
             await LoadCatalog();
         }
@@ -177,7 +181,7 @@
         var dialog = await DialogService.ShowAsync<EditMenuItemDialog>("Editar Item", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is bool success && success)
+        if (result is { Canceled: false, Data: true })
         {
             await LoadCatalog();
         }
@@ -189,7 +193,7 @@
         var dialog = await DialogService.ShowAsync<CreateIngredientDialog>("Novo Ingrediente", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is bool success && success)
+        if (result is { Canceled: false, Data: true })
         {
             await LoadCatalog();
         }

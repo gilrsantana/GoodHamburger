@@ -1,8 +1,9 @@
 @page "/admin/identity"
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using GoodHamburger.FrontEnd.Clients.Identity
 @attribute [Authorize(Roles = "Admin,Manager")]
-@inject IGoodHamburgerClient ApiClient
+@inject IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -104,7 +105,7 @@
         _loadingUsers = true;
         try
         {
-            var response = await ApiClient.GetAllUsersAsync(1, 100);
+            var response = await IdentityClient.GetAllUsersAsync(1, 100);
             _users = response.Items?.ToList() ?? new();
         }
         catch
@@ -122,7 +123,7 @@
         _loadingRoles = true;
         try
         {
-            var response = await ApiClient.GetAllRolesAsync();
+            var response = await IdentityClient.GetAllRolesAsync();
             _roles = response.Roles?.ToList() ?? new();
         }
         catch
@@ -154,7 +155,7 @@
     {
         try
         {
-            var response = await ApiClient.DeleteUserAsync(userId);
+            var response = await IdentityClient.DeleteUserAsync(userId);
             if (response.Succeeded)
             {
                 Snackbar.Add("Usuário removido.", Severity.Warning);

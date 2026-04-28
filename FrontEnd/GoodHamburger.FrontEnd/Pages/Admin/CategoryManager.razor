@@ -1,7 +1,8 @@
 @page "/admin/categories"
+@using GoodHamburger.FrontEnd.Clients.Categories
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin,Manager")]
-@inject IGoodHamburgerClient ApiClient
+@inject ICategoriesClient CategoriesClient
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -70,7 +71,7 @@ else
         _loading = true;
         try
         {
-            var response = await ApiClient.GetAllCategoriesAsync(1, 100);
+            var response = await CategoriesClient.GetAllCategoriesAsync(1, 100);
             _categories = response.Items.ToList();
         }
         catch
@@ -88,8 +89,8 @@ else
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
         var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Nova Categoria", options);
         var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is bool success && success)
+        
+        if (result is { Canceled: false, Data: true })
         {
             await LoadCategories();
         }
@@ -102,7 +103,7 @@ else
         var dialog = await DialogService.ShowAsync<EditCategoryDialog>("Editar Categoria", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is bool success && success)
+        if (result is { Canceled: false, Data: true })
         {
             await LoadCategories();
         }
@@ -112,7 +113,7 @@ else
     {
         try
         {
-            var response = await ApiClient.ActivateCategoryAsync(id);
+            var response = await CategoriesClient.ActivateCategoryAsync(id);
             if (response.Succeeded)
             {
                 Snackbar.Add("Categoria ativada.", Severity.Success);
@@ -133,7 +134,7 @@ else
     {
         try
         {
-            var response = await ApiClient.DeactivateCategoryAsync(id);
+            var response = await CategoriesClient.DeactivateCategoryAsync(id);
             if (response.Succeeded)
             {
                 Snackbar.Add("Categoria desativada.", Severity.Warning);

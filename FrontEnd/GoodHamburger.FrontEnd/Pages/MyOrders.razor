@@ -1,7 +1,8 @@
 @page "/my-orders"
+@using GoodHamburger.FrontEnd.Clients.Orders
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject IGoodHamburgerClient ApiClient
+@inject IOrdersClient OrdersClient
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
@@ -63,7 +64,7 @@ else
         _loading = true;
         try
         {
-            var response = await ApiClient.GetOrdersByCustomerAsync(Guid.Empty, 1, 50);
+            var response = await OrdersClient.GetOrdersByCustomerAsync(Guid.Empty, 1, 50);
             _orders = response.Items?.OrderByDescending(o => o.OrderDate).ToList() ?? new();
         }
         catch
@@ -96,7 +97,7 @@ else
     {
         try
         {
-            var response = await ApiClient.CancelOrderAsync(id, "Cancelado pelo usuário");
+            var response = await OrdersClient.CancelOrderAsync(id, "Cancelado pelo usuário");
             if (response.Succeeded)
             {
                 Snackbar.Add("Pedido cancelado.", Severity.Info);
