@@ -59,7 +59,11 @@ services:
       - SRE__OtlpEndpointUrl=http://lgtm:4317
       - SRE__Nome=GoodHamburger.Api.Docker
       - SRE__Habilitado=true
-      - SRE__UtilizaConsoleLog=true
+      - SRE__UtilizaConsoleLog=false
+      - DatabaseSettings__EnableSensitiveDataLogging=false
+      - DatabaseSettings__EnableDetailedErrors=false
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore=Warning
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database=Warning
     depends_on:
       - db
       - lgtm
