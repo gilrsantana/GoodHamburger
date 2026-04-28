@@ -11,21 +11,15 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Add MudBlazor Services (Must be before HttpClient for Snackbar injection)
 builder.Services.AddMudServices();
 
-// Register Auth Services
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Register Global HTTP Interceptor (handles auth headers and error handling)
 builder.Services.AddTransient<GlobalHttpHandler>();
-
-// Framework HttpClient
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// API Client using the Global Handler
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? 
     (builder.HostEnvironment.IsDevelopment() ? "http://localhost:5275" : "http://localhost:8500");
 
@@ -35,7 +29,6 @@ builder.Services.AddHttpClient<IGoodHamburgerClient, GoodHamburgerClient>(client
 })
 .AddHttpMessageHandler<GlobalHttpHandler>();
 
-// Fluxor
 builder.Services.AddFluxor(options =>
 {
     options.ScanAssemblies(typeof(Program).Assembly);
