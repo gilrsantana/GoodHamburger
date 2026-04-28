@@ -124,7 +124,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add("Ocorreu um erro ao tentar criar a conta.", Severity.Error);
+            Snackbar.Add($"Ocorreu um erro ao tentar criar a conta. {ex.Message}", Severity.Error);
         }
         finally
         {

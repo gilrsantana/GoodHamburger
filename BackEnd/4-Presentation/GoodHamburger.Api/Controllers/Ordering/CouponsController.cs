@@ -44,7 +44,9 @@ public class CouponsController : BaseApiController
     public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponCommand command, CancellationToken cancellationToken)
     {
         var result = await _createCouponHandler.HandleAsync(command, cancellationToken);
-        return result.IsSuccess ? CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value) : HandleFailure(result);
+        return result.IsSuccess 
+            ? CreatedAtAction(nameof(GetById), new { id = result.Value?.Id }, result.Value) 
+            : HandleFailure(result);
     }
 
     [HttpPut("{id}")]

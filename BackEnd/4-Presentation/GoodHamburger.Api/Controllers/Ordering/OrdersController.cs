@@ -48,7 +48,9 @@ public class OrdersController : BaseApiController
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken cancellationToken)
     {
         var result = await _createOrderHandler.HandleAsync(command, cancellationToken);
-        return result.IsSuccess ? CreatedAtAction(nameof(GetOrderById), new { id = result.Value.OrderId }, result.Value) : HandleFailure(result);
+        return result.IsSuccess 
+            ? CreatedAtAction(nameof(GetOrderById), new { id = result.Value?.OrderId }, result.Value) 
+            : HandleFailure(result);
     }
 
     [HttpPatch("{id}/status")]
